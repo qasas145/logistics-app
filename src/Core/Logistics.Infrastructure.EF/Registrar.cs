@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Logistics.Infrastructure.EF.Builder;
 using Logistics.Infrastructure.EF.Interceptors;
+using Logistics.Infrastructure.EF.Extensions;
 
 namespace Logistics.Infrastructure.EF;
 
@@ -25,6 +26,10 @@ public static class Registrar
         
         services.AddScoped<DispatchDomainEventsInterceptor>();
         services.AddScoped<AuditableEntitySaveChangesInterceptor>();
+        
+        // Blob Storage (Azure or File based on configuration)
+        services.AddFileBlobStorage(configuration);
+        
         return new InfrastructureBuilder(services, configuration);
     }
 }
