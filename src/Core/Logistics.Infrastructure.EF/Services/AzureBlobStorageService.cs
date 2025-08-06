@@ -2,6 +2,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Logistics.Domain.Services;
 using Microsoft.Extensions.Options;
+using AzureBlobProperties = Azure.Storage.Blobs.Models.BlobProperties;
 
 namespace Logistics.Infrastructure.EF.Services;
 
@@ -61,7 +62,7 @@ public class AzureBlobStorageService : IBlobStorageService
         return response.Value;
     }
 
-    public async Task<BlobProperties> GetPropertiesAsync(string containerName, string blobName, CancellationToken cancellationToken = default)
+    public async Task<BlobFileProperties> GetPropertiesAsync(string containerName, string blobName, CancellationToken cancellationToken = default)
     {
         var containerClient = await GetContainerClientAsync(containerName, cancellationToken);
         var blobClient = containerClient.GetBlobClient(blobName);
@@ -69,7 +70,7 @@ public class AzureBlobStorageService : IBlobStorageService
         var response = await blobClient.GetPropertiesAsync(cancellationToken: cancellationToken);
         var properties = response.Value;
 
-        return new BlobProperties(
+        return new BlobFileProperties(
             properties.ContentType,
             properties.ContentLength,
             properties.LastModified,

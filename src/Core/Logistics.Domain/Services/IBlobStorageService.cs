@@ -46,10 +46,10 @@ public interface IBlobStorageService
     /// <param name="blobName">Blob name/path</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Blob properties</returns>
-    Task<BlobProperties> GetPropertiesAsync(string containerName, string blobName, CancellationToken cancellationToken = default);
+    Task<BlobFileProperties> GetPropertiesAsync(string containerName, string blobName, CancellationToken cancellationToken = default);
 }
 
-public record BlobProperties(
+public record BlobFileProperties(
     string ContentType,
     long ContentLength,
     DateTimeOffset LastModified,
