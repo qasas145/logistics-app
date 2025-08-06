@@ -1,4 +1,4 @@
-﻿using Logistics.Domain.Core;
+using Logistics.Domain.Core;
 using Logistics.Shared.Consts;
 using Logistics.Domain.Events;
 using Logistics.Domain.ValueObjects;
@@ -48,6 +48,7 @@ public class Load : Entity, ITenantEntity
     public virtual Employee? AssignedDispatcher { get; set; }
 
     public virtual List<LoadInvoice> Invoices { get; set; } = [];
+    public virtual List<LoadDocument> Documents { get; set; } = [];
 
     public void SetStatus(LoadStatus status)
     {
