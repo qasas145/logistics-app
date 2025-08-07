@@ -10,16 +10,19 @@ public class AzureBlobStorageService : IBlobStorageService
 {
     private readonly BlobServiceClient _blobServiceClient;
     private readonly AzureBlobStorageOptions _options;
+    private readonly ITenantService _tenantService;
 
-    public AzureBlobStorageService(BlobServiceClient blobServiceClient, IOptions<AzureBlobStorageOptions> options)
+    public AzureBlobStorageService(BlobServiceClient blobServiceClient, IOptions<AzureBlobStorageOptions> options, ITenantService tenantService)
     {
         _blobServiceClient = blobServiceClient;
         _options = options.Value;
+        _tenantService = tenantService;
     }
 
     public async Task<string> UploadAsync(string containerName, string blobName, Stream content, string contentType, CancellationToken cancellationToken = default)
     {
-        var containerClient = await GetContainerClientAsync(containerName, cancellationToken);
+        var tenantAwareContainerName = GetTenantAwareContainerName(containerName);
+        var containerClient = await GetContainerClientAsync(tenantAwareContainerName, cancellationToken);
         var blobClient = containerClient.GetBlobClient(blobName);
 
         var blobHttpHeaders = new BlobHttpHeaders
@@ -38,7 +41,8 @@ public class AzureBlobStorageService : IBlobStorageService
 
     public async Task<Stream> DownloadAsync(string containerName, string blobName, CancellationToken cancellationToken = default)
     {
-        var containerClient = await GetContainerClientAsync(containerName, cancellationToken);
+        var tenantAwareContainerName = GetTenantAwareContainerName(containerName);
+        var containerClient = await GetContainerClientAsync(tenantAwareContainerName, cancellationToken);
         var blobClient = containerClient.GetBlobClient(blobName);
 
         var response = await blobClient.DownloadStreamingAsync(cancellationToken: cancellationToken);
@@ -47,7 +51,8 @@ public class AzureBlobStorageService : IBlobStorageService
 
     public async Task DeleteAsync(string containerName, string blobName, CancellationToken cancellationToken = default)
     {
-        var containerClient = await GetContainerClientAsync(containerName, cancellationToken);
+        var tenantAwareContainerName = GetTenantAwareContainerName(containerName);
+        var containerClient = await GetContainerClientAsync(tenantAwareContainerName, cancellationToken);
         var blobClient = containerClient.GetBlobClient(blobName);
 
         await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, cancellationToken: cancellationToken);
@@ -55,7 +60,8 @@ public class AzureBlobStorageService : IBlobStorageService
 
     public async Task<bool> ExistsAsync(string containerName, string blobName, CancellationToken cancellationToken = default)
     {
-        var containerClient = await GetContainerClientAsync(containerName, cancellationToken);
+        var tenantAwareContainerName = GetTenantAwareContainerName(containerName);
+        var containerClient = await GetContainerClientAsync(tenantAwareContainerName, cancellationToken);
         var blobClient = containerClient.GetBlobClient(blobName);
 
         var response = await blobClient.ExistsAsync(cancellationToken);
@@ -64,7 +70,8 @@ public class AzureBlobStorageService : IBlobStorageService
 
     public async Task<BlobFileProperties> GetPropertiesAsync(string containerName, string blobName, CancellationToken cancellationToken = default)
     {
-        var containerClient = await GetContainerClientAsync(containerName, cancellationToken);
+        var tenantAwareContainerName = GetTenantAwareContainerName(containerName);
+        var containerClient = await GetContainerClientAsync(tenantAwareContainerName, cancellationToken);
         var blobClient = containerClient.GetBlobClient(blobName);
 
         var response = await blobClient.GetPropertiesAsync(cancellationToken: cancellationToken);
@@ -76,6 +83,16 @@ public class AzureBlobStorageService : IBlobStorageService
             properties.LastModified,
             properties.ETag.ToString()
         );
+    }
+
+    private string GetTenantAwareContainerName(string containerName)
+    {
+        var tenant = _tenantService.GetTenant();
+        var tenantId = tenant.Id.ToString().ToLowerInvariant().Replace("-", "");
+        
+        // Azure container names must be lowercase and can't contain hyphens
+        // So we create a tenant-specific container name
+        return $"tenant{tenantId}-{containerName}".ToLowerInvariant();
     }
 
     private async Task<BlobContainerClient> GetContainerClientAsync(string containerName, CancellationToken cancellationToken)

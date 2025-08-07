@@ -6,10 +6,12 @@ namespace Logistics.Infrastructure.EF.Services;
 public class FileBlobStorageService : IBlobStorageService
 {
     private readonly FileBlobStorageOptions _options;
+    private readonly ITenantService _tenantService;
 
-    public FileBlobStorageService(IOptions<FileBlobStorageOptions> options)
+    public FileBlobStorageService(IOptions<FileBlobStorageOptions> options, ITenantService tenantService)
     {
         _options = options.Value;
+        _tenantService = tenantService;
     }
 
     public async Task<string> UploadAsync(string containerName, string blobName, Stream content, string contentType, CancellationToken cancellationToken = default)
@@ -93,7 +95,9 @@ public class FileBlobStorageService : IBlobStorageService
 
     private string GetContainerPath(string containerName)
     {
-        return Path.Combine(_options.RootPath, containerName);
+        var tenant = _tenantService.GetTenant();
+        var tenantId = tenant.Id.ToString();
+        return Path.Combine(_options.RootPath, tenantId, containerName);
     }
 
     private string GetFilePath(string containerName, string blobName)
@@ -109,12 +113,15 @@ public class FileBlobStorageService : IBlobStorageService
 
     private string GetFileUri(string containerName, string blobName)
     {
+        var tenant = _tenantService.GetTenant();
+        var tenantId = tenant.Id.ToString();
+        
         if (!string.IsNullOrEmpty(_options.BaseUrl))
         {
-            return $"{_options.BaseUrl.TrimEnd('/')}/{containerName}/{blobName}";
+            return $"{_options.BaseUrl.TrimEnd('/')}/{tenantId}/{containerName}/{blobName}";
         }
         
-        return $"file:///{containerName}/{blobName}";
+        return $"file:///{tenantId}/{containerName}/{blobName}";
     }
 
     private static void EnsureDirectoryExists(string path)
