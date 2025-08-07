@@ -1,0 +1,195 @@
+{
+  "info": {
+    "_postman_id": "b1e2d3f4-5678-1234-9abc-def012345678",
+    "name": "Logistics Seed Requests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection for seeding Logistics TMS database tables (excluding load documents)."
+  },
+  "item": [
+    {
+      "name": "Login (Get JWT Token)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@gmail.com\",\n  \"password\": \"Test12345#\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/identity/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["identity", "login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Tenant",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"TestTenant\",\n  \"displayName\": \"Test Tenant\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tenants",
+          "host": ["{{baseUrl}}"],
+          "path": ["tenants"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create User",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userName\": \"testuser\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Test12345#\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": ["{{baseUrl}}"],
+          "path": ["users"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Employee",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userName\": \"employee1\",\n  \"email\": \"employee1@example.com\",\n  \"password\": \"Test12345#\",\n  \"role\": \"Manager\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/employees",
+          "host": ["{{baseUrl}}"],
+          "path": ["employees"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Customer",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Customer1\",\n  \"address\": \"123 Main St\",\n  \"phone\": \"1234567890\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/customers",
+          "host": ["{{baseUrl}}"],
+          "path": ["customers"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Truck",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"licensePlate\": \"ABC123\",\n  \"model\": \"Volvo FH16\",\n  \"year\": 2022\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/trucks",
+          "host": ["{{baseUrl}}"],
+          "path": ["trucks"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Payment Method",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"CreditCard\",\n  \"details\": \"4111111111111111\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/payments/methods",
+          "host": ["{{baseUrl}}"],
+          "path": ["payments", "methods"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 1000,\n  \"methodId\": \"{{paymentMethodId}}\",\n  \"description\": \"Test payment\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/payments",
+          "host": ["{{baseUrl}}"],
+          "path": ["payments"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Invoice",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{jwtToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"amount\": 1500,\n  \"description\": \"Test invoice\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/invoices/loads",
+          "host": ["{{baseUrl}}"],
+          "path": ["invoices", "loads"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "jwtToken", "value": "" },
+    { "key": "paymentMethodId", "value": "" },
+    { "key": "customerId", "value": "" }
+  ]
+}
