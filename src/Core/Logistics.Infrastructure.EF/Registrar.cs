@@ -2,9 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Logistics.Infrastructure.EF.Builder;
 using Logistics.Infrastructure.EF.Interceptors;
-using Logistics.Infrastructure.EF.Services;
-using Logistics.Domain.Services;
-using Azure.Storage.Blobs;
+using Logistics.Infrastructure.EF.Extensions;
 
 namespace Logistics.Infrastructure.EF;
 
@@ -29,15 +27,8 @@ public static class Registrar
         services.AddScoped<DispatchDomainEventsInterceptor>();
         services.AddScoped<AuditableEntitySaveChangesInterceptor>();
         
-        // Azure Blob Storage
-        services.Configure<AzureBlobStorageOptions>(options =>
-            configuration.GetSection(AzureBlobStorageOptions.SectionName).Bind(options));
-        services.AddSingleton(provider =>
-        {
-            var connectionString = configuration.GetConnectionString("AzureBlobStorage");
-            return new BlobServiceClient(connectionString);
-        });
-        services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
+        // Blob Storage (Azure or File based on configuration)
+        services.AddBlobStorage(configuration);
         
         return new InfrastructureBuilder(services, configuration);
     }

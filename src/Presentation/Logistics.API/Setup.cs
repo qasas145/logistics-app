@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Hangfire;
@@ -120,6 +120,25 @@ internal static class Setup
         
         app.UseHttpsRedirection();
         app.UseCors(app.Environment.IsDevelopment() ? "AnyCors" : "DefaultCors");
+        
+        // Serve static files for local blob storage
+        var storageType = app.Configuration.GetValue<string>("BlobStorage:Type")?.ToLowerInvariant();
+        if (storageType is "file" or "local" or null)
+        {
+            var uploadsPath = app.Configuration.GetValue<string>("FileBlobStorage:RootPath") ?? "wwwroot/uploads";
+            var uploadsDirectory = Path.Combine(app.Environment.ContentRootPath, uploadsPath);
+            
+            if (!Directory.Exists(uploadsDirectory))
+            {
+                Directory.CreateDirectory(uploadsDirectory);
+            }
+            
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsDirectory),
+                RequestPath = "/uploads"
+            });
+        }
 
         app.UseAuthentication();
         app.UseAuthorization();
