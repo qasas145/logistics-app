@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Logistics.Application.Queries.Reports.GetDriverReport;
 
-public class GetDriverReportQuery : PaginatedQuery, IRequest<Result<PagedResult<DriverReportDto>>>
+public class GetDriverReportQuery : PagedQuery, IRequest<Result<PagedResult<DriverReportDto>>>
 {
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }

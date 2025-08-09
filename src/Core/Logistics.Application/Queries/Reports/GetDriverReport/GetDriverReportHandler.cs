@@ -44,8 +44,8 @@ public sealed class GetDriverReportHandler : IRequestHandler<GetDriverReportQuer
             var totalCount = actualDrivers.Count;
             
             var pagedDrivers = actualDrivers
-                .Skip((request.Page - 1) * request.Size)
-                .Take(request.Size)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
                 .ToList();
 
             var driverReports = new List<DriverReportDto>();
@@ -64,15 +64,15 @@ public sealed class GetDriverReportHandler : IRequestHandler<GetDriverReportQuer
                 Items = driverReports,
                 TotalCount = totalCount,
                 Page = request.Page,
-                Size = request.Size,
-                TotalPages = (int)Math.Ceiling((double)totalCount / request.Size)
+                Size = request.PageSize,
+                TotalPages = (int)Math.Ceiling((double)totalCount / request.PageSize)
             };
 
-            return Result<PagedResult<DriverReportDto>>.Success(result);
+            return Result<PagedResult<DriverReportDto>>.Succeed(result);
         }
         catch (Exception ex)
         {
-            return Result<PagedResult<DriverReportDto>>.Failure($"Error generating driver report: {ex.Message}");
+            return Result<PagedResult<DriverReportDto>>.Fail($"Error generating driver report: {ex.Message}");
         }
     }
 

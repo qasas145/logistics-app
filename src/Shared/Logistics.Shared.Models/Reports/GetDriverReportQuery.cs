@@ -1,6 +1,6 @@
 namespace Logistics.Shared.Models.Reports;
 
-public class GetDriverReportQuery : PaginatedQuery
+public class GetDriverReportQuery : PagedQuery
 {
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }

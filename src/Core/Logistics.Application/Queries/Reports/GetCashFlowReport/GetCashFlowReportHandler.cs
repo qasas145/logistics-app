@@ -88,11 +88,11 @@ public sealed class GetCashFlowReportHandler : IRequestHandler<GetCashFlowReport
                 request.EndDate, 
                 request.Period);
 
-            return Result<CashFlowReportDto>.Success(report);
+            return Result<CashFlowReportDto>.Succeed(report);
         }
         catch (Exception ex)
         {
-            return Result<CashFlowReportDto>.Failure($"Error generating cash flow report: {ex.Message}");
+            return Result<CashFlowReportDto>.Fail($"Error generating cash flow report: {ex.Message}");
         }
     }
 

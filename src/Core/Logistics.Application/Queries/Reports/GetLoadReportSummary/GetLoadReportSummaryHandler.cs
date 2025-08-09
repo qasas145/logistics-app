@@ -72,11 +72,11 @@ public sealed class GetLoadReportSummaryHandler : IRequestHandler<GetLoadReportS
                     Percentage = summary.TotalLoads > 0 ? (decimal)g.Count() / summary.TotalLoads * 100 : 0
                 }).ToList();
 
-            return Result<LoadReportSummaryDto>.Success(summary);
+            return Result<LoadReportSummaryDto>.Succeed(summary);
         }
         catch (Exception ex)
         {
-            return Result<LoadReportSummaryDto>.Failure($"Error generating load report summary: {ex.Message}");
+            return Result<LoadReportSummaryDto>.Fail($"Error generating load report summary: {ex.Message}");
         }
     }
 

@@ -86,11 +86,11 @@ public sealed class GetFinancialSummaryHandler : IRequestHandler<GetFinancialSum
                 LoadsCompleted = m.LoadsCompleted
             }).ToList();
 
-            return Result<FinancialSummaryDto>.Success(summary);
+            return Result<FinancialSummaryDto>.Succeed(summary);
         }
         catch (Exception ex)
         {
-            return Result<FinancialSummaryDto>.Failure($"Error generating financial summary: {ex.Message}");
+            return Result<FinancialSummaryDto>.Fail($"Error generating financial summary: {ex.Message}");
         }
     }
 }

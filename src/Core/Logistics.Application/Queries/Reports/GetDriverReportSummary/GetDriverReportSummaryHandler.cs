@@ -149,11 +149,11 @@ public sealed class GetDriverReportSummaryHandler : IRequestHandler<GetDriverRep
                 }
             };
 
-            return Result<DriverReportSummaryDto>.Success(summary);
+            return Result<DriverReportSummaryDto>.Succeed(summary);
         }
         catch (Exception ex)
         {
-            return Result<DriverReportSummaryDto>.Failure($"Error generating driver report summary: {ex.Message}");
+            return Result<DriverReportSummaryDto>.Fail($"Error generating driver report summary: {ex.Message}");
         }
     }
 

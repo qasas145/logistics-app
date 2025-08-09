@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Logistics.Application.Queries.Reports.GetLoadReport;
 
-public class GetLoadReportQuery : PaginatedQuery, IRequest<Result<PagedResult<LoadReportDto>>>
+public class GetLoadReportQuery : PagedQuery, IRequest<Result<PagedResult<LoadReportDto>>>
 {
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }

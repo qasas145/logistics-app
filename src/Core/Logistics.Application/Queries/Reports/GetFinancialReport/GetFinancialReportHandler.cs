@@ -99,11 +99,11 @@ public sealed class GetFinancialReportHandler : IRequestHandler<GetFinancialRepo
                 report.Comparison = await CalculateComparison(request, cancellationToken);
             }
 
-            return Result<FinancialReportDto>.Success(report);
+            return Result<FinancialReportDto>.Succeed(report);
         }
         catch (Exception ex)
         {
-            return Result<FinancialReportDto>.Failure($"Error generating financial report: {ex.Message}");
+            return Result<FinancialReportDto>.Fail($"Error generating financial report: {ex.Message}");
         }
     }
 

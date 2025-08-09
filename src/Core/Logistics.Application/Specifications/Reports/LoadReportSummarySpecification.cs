@@ -1,63 +1,68 @@
 using Logistics.Application.Queries.Reports.GetLoadReportSummary;
-using Logistics.Domain.Core;
 using Logistics.Domain.Entities;
 using Logistics.Domain.Primitives.Enums;
-using System.Linq.Expressions;
+using Logistics.Domain.Specifications;
 
 namespace Logistics.Application.Specifications.Reports;
 
 public sealed class LoadReportSummarySpecification : BaseSpecification<Load>
 {
-    public LoadReportSummarySpecification(GetLoadReportSummaryQuery query) : base(BuildCriteria(query))
+    public LoadReportSummarySpecification(GetLoadReportSummaryQuery query)
     {
-    }
-
-    private static Expression<Func<Load, bool>> BuildCriteria(GetLoadReportSummaryQuery query)
-    {
-        var criteria = PredicateBuilder.New<Load>(true);
-
-        if (query.StartDate.HasValue)
+        // Build criteria based on filters
+        if (query.StartDate.HasValue && query.EndDate.HasValue)
         {
-            criteria = criteria.And(l => l.DispatchedDate >= query.StartDate.Value);
+            Criteria = l => l.DispatchedDate >= query.StartDate.Value && 
+                           l.DispatchedDate <= query.EndDate.Value;
+        }
+        else if (query.StartDate.HasValue)
+        {
+            Criteria = l => l.DispatchedDate >= query.StartDate.Value;
+        }
+        else if (query.EndDate.HasValue)
+        {
+            Criteria = l => l.DispatchedDate <= query.EndDate.Value;
         }
 
-        if (query.EndDate.HasValue)
+        // Apply additional filters using simplified approach
+        if (!string.IsNullOrWhiteSpace(query.Status) && Enum.TryParse<LoadStatus>(query.Status, true, out var status))
         {
-            criteria = criteria.And(l => l.DispatchedDate <= query.EndDate.Value);
+            var currentCriteria = Criteria;
+            Criteria = currentCriteria == null ? 
+                l => l.Status == status : 
+                l => currentCriteria.Compile()(l) && l.Status == status;
         }
 
-        if (!string.IsNullOrWhiteSpace(query.Status))
+        if (!string.IsNullOrWhiteSpace(query.LoadType) && Enum.TryParse<LoadType>(query.LoadType, true, out var loadType))
         {
-            if (Enum.TryParse<LoadStatus>(query.Status, true, out var status))
-            {
-                criteria = criteria.And(l => l.Status == status);
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(query.LoadType))
-        {
-            if (Enum.TryParse<LoadType>(query.LoadType, true, out var loadType))
-            {
-                criteria = criteria.And(l => l.Type == loadType);
-            }
+            var currentCriteria = Criteria;
+            Criteria = currentCriteria == null ? 
+                l => l.Type == loadType : 
+                l => currentCriteria.Compile()(l) && l.Type == loadType;
         }
 
         if (query.AssignedDriverId.HasValue)
         {
-            criteria = criteria.And(l => l.AssignedTruck != null && 
-                                       l.AssignedTruck.DriverId == query.AssignedDriverId.Value);
+            var currentCriteria = Criteria;
+            Criteria = currentCriteria == null ? 
+                l => l.AssignedTruck != null && l.AssignedTruck.MainDriverId == query.AssignedDriverId.Value : 
+                l => currentCriteria.Compile()(l) && l.AssignedTruck != null && l.AssignedTruck.MainDriverId == query.AssignedDriverId.Value;
         }
 
         if (query.AssignedTruckId.HasValue)
         {
-            criteria = criteria.And(l => l.AssignedTruckId == query.AssignedTruckId.Value);
+            var currentCriteria = Criteria;
+            Criteria = currentCriteria == null ? 
+                l => l.AssignedTruckId == query.AssignedTruckId.Value : 
+                l => currentCriteria.Compile()(l) && l.AssignedTruckId == query.AssignedTruckId.Value;
         }
 
         if (query.CustomerId.HasValue)
         {
-            criteria = criteria.And(l => l.CustomerId == query.CustomerId.Value);
+            var currentCriteria = Criteria;
+            Criteria = currentCriteria == null ? 
+                l => l.CustomerId == query.CustomerId.Value : 
+                l => currentCriteria.Compile()(l) && l.CustomerId == query.CustomerId.Value;
         }
-
-        return criteria;
     }
 }

@@ -1,6 +1,6 @@
 namespace Logistics.Shared.Models.Reports;
 
-public class GetLoadReportQuery : PaginatedQuery
+public class GetLoadReportQuery : PagedQuery
 {
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }

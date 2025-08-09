@@ -2,6 +2,7 @@ using Logistics.Application.Queries.Reports.GetDriverReport;
 using Logistics.Application.Queries.Reports.GetFinancialReport;
 using Logistics.Application.Queries.Reports.GetLoadReport;
 using Logistics.Application.Queries.Reports.GetLoadReportSummary;
+using Logistics.Application.Services.Reports;
 using Logistics.Shared.Models;
 using Logistics.Shared.Models.Reports;
 using Logistics.Shared.Identity.Policies;
@@ -17,10 +18,12 @@ namespace Logistics.API.Controllers;
 public class ReportsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IReportExportService _exportService;
 
-    public ReportsController(IMediator mediator)
+    public ReportsController(IMediator mediator, IReportExportService exportService)
     {
         _mediator = mediator;
+        _exportService = exportService;
     }
 
     #region Load Reports
@@ -66,7 +69,7 @@ public class ReportsController : ControllerBase
     public async Task<IActionResult> GetDriverReport(Guid driverId, [FromQuery] GetDriverReportQuery request)
     {
         request.DriverId = driverId;
-        request.Size = 1; // Only get one driver
+        request.PageSize = 1; // Only get one driver
         
         var result = await _mediator.Send(request);
         if (!result.Success) return BadRequest(result);
@@ -74,10 +77,10 @@ public class ReportsController : ControllerBase
         var driver = result.Data?.Items?.FirstOrDefault();
         if (driver == null)
         {
-            return NotFound(Result.Failure($"Driver with ID {driverId} not found"));
+            return NotFound(Result.Fail($"Driver with ID {driverId} not found"));
         }
 
-        return Ok(Result<DriverReportDto>.Success(driver));
+        return Ok(Result<DriverReportDto>.Succeed(driver));
     }
 
     [HttpGet("drivers/summary")]
@@ -167,11 +170,225 @@ public class ReportsController : ControllerBase
                 FinancialSummary = financialSummaryTask.Result.Success ? financialSummaryTask.Result.Data : new FinancialSummaryDto()
             };
 
-            return Ok(Result<DashboardReportDto>.Success(dashboard));
+            return Ok(Result<DashboardReportDto>.Succeed(dashboard));
         }
         catch (Exception ex)
         {
-            return BadRequest(Result.Failure($"Error generating dashboard report: {ex.Message}"));
+            return BadRequest(Result.Fail($"Error generating dashboard report: {ex.Message}"));
+        }
+    }
+
+    #endregion
+
+    #region Export Endpoints
+
+    [HttpGet("loads/export/pdf")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [Authorize(Policy = Permissions.Reports.Export)]
+    public async Task<IActionResult> ExportLoadReportToPdf([FromQuery] GetLoadReportQuery request)
+    {
+        try
+        {
+            var loadReportsResult = await _mediator.Send(request);
+            if (!loadReportsResult.Success) return BadRequest(loadReportsResult);
+
+            var summaryResult = await _mediator.Send(new GetLoadReportSummaryQuery 
+            {
+                StartDate = request.StartDate,
+                EndDate = request.EndDate,
+                Status = request.Status,
+                LoadType = request.LoadType
+            });
+
+            var pdfBytes = await _exportService.ExportLoadReportToPdfAsync(
+                loadReportsResult.Data?.Items?.ToList() ?? new List<LoadReportDto>(),
+                summaryResult.Success ? summaryResult.Data : null);
+
+            return File(pdfBytes, "text/html", $"load-report-{DateTime.Now:yyyy-MM-dd}.html");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(Result.Fail($"Error exporting load report to PDF: {ex.Message}"));
+        }
+    }
+
+    [HttpGet("loads/export/excel")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [Authorize(Policy = Permissions.Reports.Export)]
+    public async Task<IActionResult> ExportLoadReportToExcel([FromQuery] GetLoadReportQuery request)
+    {
+        try
+        {
+            var loadReportsResult = await _mediator.Send(request);
+            if (!loadReportsResult.Success) return BadRequest(loadReportsResult);
+
+            var summaryResult = await _mediator.Send(new GetLoadReportSummaryQuery 
+            {
+                StartDate = request.StartDate,
+                EndDate = request.EndDate,
+                Status = request.Status,
+                LoadType = request.LoadType
+            });
+
+            var excelBytes = await _exportService.ExportLoadReportToExcelAsync(
+                loadReportsResult.Data?.Items?.ToList() ?? new List<LoadReportDto>(),
+                summaryResult.Success ? summaryResult.Data : null);
+
+            return File(excelBytes, "text/csv", $"load-report-{DateTime.Now:yyyy-MM-dd}.csv");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(Result.Fail($"Error exporting load report to Excel: {ex.Message}"));
+        }
+    }
+
+    [HttpGet("drivers/export/pdf")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [Authorize(Policy = Permissions.Reports.Export)]
+    public async Task<IActionResult> ExportDriverReportToPdf([FromQuery] GetDriverReportQuery request)
+    {
+        try
+        {
+            var driverReportsResult = await _mediator.Send(request);
+            if (!driverReportsResult.Success) return BadRequest(driverReportsResult);
+
+            var pdfBytes = await _exportService.ExportDriverReportToPdfAsync(
+                driverReportsResult.Data?.Items?.ToList() ?? new List<DriverReportDto>());
+
+            return File(pdfBytes, "text/html", $"driver-report-{DateTime.Now:yyyy-MM-dd}.html");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(Result.Fail($"Error exporting driver report to PDF: {ex.Message}"));
+        }
+    }
+
+    [HttpGet("drivers/export/excel")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [Authorize(Policy = Permissions.Reports.Export)]
+    public async Task<IActionResult> ExportDriverReportToExcel([FromQuery] GetDriverReportQuery request)
+    {
+        try
+        {
+            var driverReportsResult = await _mediator.Send(request);
+            if (!driverReportsResult.Success) return BadRequest(driverReportsResult);
+
+            var excelBytes = await _exportService.ExportDriverReportToExcelAsync(
+                driverReportsResult.Data?.Items?.ToList() ?? new List<DriverReportDto>());
+
+            return File(excelBytes, "text/csv", $"driver-report-{DateTime.Now:yyyy-MM-dd}.csv");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(Result.Fail($"Error exporting driver report to Excel: {ex.Message}"));
+        }
+    }
+
+    [HttpGet("financial/export/pdf")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [Authorize(Policy = Permissions.Reports.Export)]
+    public async Task<IActionResult> ExportFinancialReportToPdf([FromQuery] GetFinancialReportQuery request)
+    {
+        try
+        {
+            var financialReportResult = await _mediator.Send(request);
+            if (!financialReportResult.Success) return BadRequest(financialReportResult);
+
+            var pdfBytes = await _exportService.ExportFinancialReportToPdfAsync(financialReportResult.Data!);
+
+            return File(pdfBytes, "text/html", $"financial-report-{DateTime.Now:yyyy-MM-dd}.html");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(Result.Fail($"Error exporting financial report to PDF: {ex.Message}"));
+        }
+    }
+
+    [HttpGet("financial/export/excel")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [Authorize(Policy = Permissions.Reports.Export)]
+    public async Task<IActionResult> ExportFinancialReportToExcel([FromQuery] GetFinancialReportQuery request)
+    {
+        try
+        {
+            var financialReportResult = await _mediator.Send(request);
+            if (!financialReportResult.Success) return BadRequest(financialReportResult);
+
+            var excelBytes = await _exportService.ExportFinancialReportToExcelAsync(financialReportResult.Data!);
+
+            return File(excelBytes, "text/csv", $"financial-report-{DateTime.Now:yyyy-MM-dd}.csv");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(Result.Fail($"Error exporting financial report to Excel: {ex.Message}"));
+        }
+    }
+
+    [HttpGet("dashboard/export/pdf")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [Authorize(Policy = Permissions.Reports.Export)]
+    public async Task<IActionResult> ExportDashboardReportToPdf([FromQuery] DashboardReportQuery request)
+    {
+        try
+        {
+            var dashboardResult = await _mediator.Send(new GetLoadReportSummaryQuery 
+            { 
+                StartDate = request.StartDate, 
+                EndDate = request.EndDate 
+            });
+            
+            // For simplicity, creating a basic dashboard export
+            // In a real implementation, you would create a proper dashboard DTO
+            var dashboard = new DashboardReportDto
+            {
+                ReportDate = DateTime.UtcNow.ToString(),
+                PeriodStart = request.StartDate?.ToString() ?? DateTime.UtcNow.AddMonths(-1).ToString(),
+                PeriodEnd = request.EndDate?.ToString() ?? DateTime.UtcNow.ToString(),
+                LoadSummary = dashboardResult.Success ? dashboardResult.Data! : new LoadReportSummaryDto(),
+                DriverSummary = new DriverReportSummaryDto(),
+                FinancialSummary = new FinancialSummaryDto()
+            };
+
+            var pdfBytes = await _exportService.ExportDashboardReportToPdfAsync(dashboard);
+
+            return File(pdfBytes, "text/html", $"dashboard-report-{DateTime.Now:yyyy-MM-dd}.html");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(Result.Fail($"Error exporting dashboard report to PDF: {ex.Message}"));
+        }
+    }
+
+    [HttpGet("dashboard/export/excel")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [Authorize(Policy = Permissions.Reports.Export)]
+    public async Task<IActionResult> ExportDashboardReportToExcel([FromQuery] DashboardReportQuery request)
+    {
+        try
+        {
+            var dashboardResult = await _mediator.Send(new GetLoadReportSummaryQuery 
+            { 
+                StartDate = request.StartDate, 
+                EndDate = request.EndDate 
+            });
+            
+            var dashboard = new DashboardReportDto
+            {
+                ReportDate = DateTime.UtcNow.ToString(),
+                PeriodStart = request.StartDate?.ToString() ?? DateTime.UtcNow.AddMonths(-1).ToString(),
+                PeriodEnd = request.EndDate?.ToString() ?? DateTime.UtcNow.ToString(),
+                LoadSummary = dashboardResult.Success ? dashboardResult.Data! : new LoadReportSummaryDto(),
+                DriverSummary = new DriverReportSummaryDto(),
+                FinancialSummary = new FinancialSummaryDto()
+            };
+
+            var excelBytes = await _exportService.ExportDashboardReportToExcelAsync(dashboard);
+
+            return File(excelBytes, "text/csv", $"dashboard-report-{DateTime.Now:yyyy-MM-dd}.csv");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(Result.Fail($"Error exporting dashboard report to Excel: {ex.Message}"));
         }
     }
 

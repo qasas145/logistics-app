@@ -37,8 +37,8 @@ public sealed class GetLoadReportHandler : IRequestHandler<GetLoadReportQuery, R
             var totalCount = await query.CountAsync(cancellationToken);
             
             var loads = await query
-                .Skip((request.Page - 1) * request.Size)
-                .Take(request.Size)
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
 
             var loadReports = loads.Select(load => LoadReportMapper.MapToLoadReportDto(load, request.IncludeInvoiceDetails ?? true)).ToList();
@@ -48,15 +48,15 @@ public sealed class GetLoadReportHandler : IRequestHandler<GetLoadReportQuery, R
                 Items = loadReports,
                 TotalCount = totalCount,
                 Page = request.Page,
-                Size = request.Size,
-                TotalPages = (int)Math.Ceiling((double)totalCount / request.Size)
+                Size = request.PageSize,
+                TotalPages = (int)Math.Ceiling((double)totalCount / request.PageSize)
             };
 
-            return Result<PagedResult<LoadReportDto>>.Success(result);
+            return Result<PagedResult<LoadReportDto>>.Succeed(result);
         }
         catch (Exception ex)
         {
-            return Result<PagedResult<LoadReportDto>>.Failure($"Error generating load report: {ex.Message}");
+            return Result<PagedResult<LoadReportDto>>.Fail($"Error generating load report: {ex.Message}");
         }
     }
 
