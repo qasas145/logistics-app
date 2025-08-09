@@ -34,9 +34,21 @@ export abstract class ApiBase {
     return sortOrder <= -1 ? `-${sortField}` : sortField;
   }
 
-  protected get<TResponse>(endpoint: string): Observable<TResponse> {
+  protected get<TResponse>(endpoint: string, query?: object): Observable<TResponse> {
+    const queryString = query ? this.stringfyQuery(query) : '';
+    const url = queryString ? `${this.apiUrl}${endpoint}?${queryString}` : `${this.apiUrl}${endpoint}`;
+    
     return this.http
-      .get<TResponse>(this.apiUrl + endpoint)
+      .get<TResponse>(url)
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  protected getBlob(endpoint: string, query?: object): Observable<Blob> {
+    const queryString = query ? this.stringfyQuery(query) : '';
+    const url = queryString ? `${this.apiUrl}${endpoint}?${queryString}` : `${this.apiUrl}${endpoint}`;
+    
+    return this.http
+      .get(url, { responseType: 'blob' })
       .pipe(catchError((err) => this.handleError(err)));
   }
 
