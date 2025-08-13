@@ -1,10 +1,9 @@
-﻿using Logistics.Shared.Models;
+using Logistics.Application.Abstractions;
 using Logistics.Domain.Primitives.Enums;
-using MediatR;
 
 namespace Logistics.Application.Commands;
 
-public class ConfirmLoadStatusCommand : IRequest<Result>
+public class ConfirmLoadStatusCommand : IAppRequest
 {
     public Guid DriverId { get; set; }
     public Guid LoadId { get; set; }

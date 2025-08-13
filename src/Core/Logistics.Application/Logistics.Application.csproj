@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -23,10 +23,6 @@
     <ProjectReference Include="..\..\Shared\Logistics.Shared.Models\Logistics.Shared.Models.csproj" />
     <ProjectReference Include="..\Logistics.Domain\Logistics.Domain.csproj" />
     <ProjectReference Include="..\Logistics.Mappings\Logistics.Mappings.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Commands\Webhooks\" />
   </ItemGroup>
 
 </Project>

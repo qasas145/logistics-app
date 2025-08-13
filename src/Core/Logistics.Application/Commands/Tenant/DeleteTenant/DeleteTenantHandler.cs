@@ -1,4 +1,4 @@
-﻿using Logistics.Application;
+using Logistics.Application.Abstractions;
 using Logistics.Application.Services;
 using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
@@ -7,15 +7,15 @@ using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class DeleteTenantHandler : RequestHandler<DeleteTenantCommand, Result>
+internal sealed class DeleteTenantHandler : IAppRequestHandler<DeleteTenantCommand, Result>
 {
-    private readonly ITenantDatabaseService _tenantDatabase;
-    private readonly IMasterUnityOfWork _masterRepository;
+    private readonly IMasterUnitOfWork _masterRepository;
     private readonly IStripeService _stripeService;
+    private readonly ITenantDatabaseService _tenantDatabase;
 
     public DeleteTenantHandler(
         ITenantDatabaseService tenantDatabase,
-        IMasterUnityOfWork masterRepository,
+        IMasterUnitOfWork masterRepository,
         IStripeService stripeService)
     {
         _tenantDatabase = tenantDatabase;
@@ -23,7 +23,7 @@ internal sealed class DeleteTenantHandler : RequestHandler<DeleteTenantCommand, 
         _stripeService = stripeService;
     }
 
-    protected override async Task<Result> HandleValidated(DeleteTenantCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(DeleteTenantCommand req, CancellationToken ct)
     {
         var tenant = await _masterRepository.Repository<Tenant>().GetByIdAsync(req.Id);
 
@@ -43,9 +43,9 @@ internal sealed class DeleteTenantHandler : RequestHandler<DeleteTenantCommand, 
         {
             await _stripeService.DeleteCustomerAsync(tenant.StripeCustomerId);
         }
-        
+
         _masterRepository.Repository<Tenant>().Delete(tenant);
         await _masterRepository.SaveChangesAsync();
-        return Result.Succeed();
+        return Result.Ok();
     }
 }

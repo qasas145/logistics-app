@@ -1,4 +1,4 @@
-﻿using Logistics.Application.Hubs;
+using Logistics.Application.Hubs;
 using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Mappings;
@@ -8,11 +8,11 @@ namespace Logistics.Application.Services;
 
 internal class NotificationService : INotificationService
 {
-    private readonly ITenantUnityOfWork _tenantUow;
     private readonly IHubContext<NotificationHub, INotificationHubClient> _notificationHub;
+    private readonly ITenantUnitOfWork _tenantUow;
 
     public NotificationService(
-        ITenantUnityOfWork tenantUow,
+        ITenantUnitOfWork tenantUow,
         IHubContext<NotificationHub, INotificationHubClient> notificationHub)
     {
         _tenantUow = tenantUow;
@@ -27,7 +27,7 @@ internal class NotificationService : INotificationService
             Title = title,
             Message = message
         };
-        
+
         var notificationRepository = _tenantUow.Repository<Notification>();
         await notificationRepository.AddAsync(notification);
         var changes = await _tenantUow.SaveChangesAsync();

@@ -1,19 +1,20 @@
-﻿using Logistics.Application.Services;
+using Logistics.Application.Abstractions;
+using Logistics.Application.Services;
 using Logistics.Domain.Persistence;
 using Logistics.Shared.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class CreateSetupIntentHandler : RequestHandler<CreateSetupIntentCommand, Result<SetupIntentDto>>
+internal sealed class CreateSetupIntentHandler : IAppRequestHandler<CreateSetupIntentCommand, Result<SetupIntentDto>>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
-    private readonly IStripeService _stripeService;
     private readonly ILogger<CreateSetupIntentHandler> _logger;
+    private readonly IStripeService _stripeService;
+    private readonly ITenantUnitOfWork _tenantUow;
 
     public CreateSetupIntentHandler(
-        ITenantUnityOfWork tenantUow, 
-        IStripeService stripeService, 
+        ITenantUnitOfWork tenantUow,
+        IStripeService stripeService,
         ILogger<CreateSetupIntentHandler> logger)
     {
         _tenantUow = tenantUow;
@@ -21,17 +22,16 @@ internal sealed class CreateSetupIntentHandler : RequestHandler<CreateSetupInten
         _logger = logger;
     }
 
-    protected override async Task<Result<SetupIntentDto>> HandleValidated(
-        CreateSetupIntentCommand req, CancellationToken cancellationToken)
+    public async Task<Result<SetupIntentDto>> Handle(CreateSetupIntentCommand req, CancellationToken ct)
     {
         var tenant = _tenantUow.GetCurrentTenant();
 
         var setupIntent = await _stripeService.CreateSetupIntentAsync(tenant);
-        
+
         var dto = new SetupIntentDto
         {
             ClientSecret = setupIntent.ClientSecret
         };
-        return Result<SetupIntentDto>.Succeed(dto);
+        return Result<SetupIntentDto>.Ok(dto);
     }
 }

@@ -1,15 +1,16 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Domain.Entities;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Logistics.Infrastructure.Data.Configurations;
 
-public class SubscriptionPlanEntityConfiguration : IEntityTypeConfiguration<SubscriptionPlan>
+internal sealed class SubscriptionPlanEntityConfiguration : IEntityTypeConfiguration<SubscriptionPlan>
 {
     public void Configure(EntityTypeBuilder<SubscriptionPlan> builder)
     {
         builder.ToTable("SubscriptionPlans");
-            
+
         builder.ComplexProperty(i => i.Price, money =>
         {
             money.Property(m => m.Amount).HasPrecision(18, 2);

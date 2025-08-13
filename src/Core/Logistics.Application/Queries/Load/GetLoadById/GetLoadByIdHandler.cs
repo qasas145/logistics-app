@@ -1,21 +1,22 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Mappings;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-internal sealed class GetLoadByIdHandler : RequestHandler<GetLoadByIdQuery, Result<LoadDto>>
+internal sealed class GetLoadByIdHandler : IAppRequestHandler<GetLoadByIdQuery, Result<LoadDto>>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
-    public GetLoadByIdHandler(ITenantUnityOfWork tenantUow)
+    public GetLoadByIdHandler(ITenantUnitOfWork tenantUow)
     {
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<Result<LoadDto>> HandleValidated(
-        GetLoadByIdQuery req, CancellationToken cancellationToken)
+    public async Task<Result<LoadDto>> Handle(
+        GetLoadByIdQuery req, CancellationToken ct)
     {
         var loadEntity = await _tenantUow.Repository<Load>().GetByIdAsync(req.Id);
 
@@ -23,8 +24,8 @@ internal sealed class GetLoadByIdHandler : RequestHandler<GetLoadByIdQuery, Resu
         {
             return Result<LoadDto>.Fail($"Could not find a load with ID '{req.Id}'");
         }
-        
+
         var loadDto = loadEntity.ToDto();
-        return Result<LoadDto>.Succeed(loadDto);
+        return Result<LoadDto>.Ok(loadDto);
     }
 }

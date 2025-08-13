@@ -1,11 +1,12 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Mappings;
 using Logistics.Shared.Models;
 using Microsoft.AspNetCore.Identity;
 
 namespace Logistics.Application.Queries;
 
-internal sealed class GetUserByIdHandler : RequestHandler<GetUserByIdQuery, Result<UserDto>>
+internal sealed class GetUserByIdHandler : IAppRequestHandler<GetUserByIdQuery, Result<UserDto>>
 {
     private readonly UserManager<User> _userManager;
 
@@ -14,8 +15,8 @@ internal sealed class GetUserByIdHandler : RequestHandler<GetUserByIdQuery, Resu
         _userManager = userManager;
     }
 
-    protected override async Task<Result<UserDto>> HandleValidated(
-        GetUserByIdQuery req, CancellationToken cancellationToken)
+    public async Task<Result<UserDto>> Handle(
+        GetUserByIdQuery req, CancellationToken ct)
     {
         var userEntity = await _userManager.FindByIdAsync(req.UserId);
 
@@ -25,8 +26,8 @@ internal sealed class GetUserByIdHandler : RequestHandler<GetUserByIdQuery, Resu
         }
 
         var userRoles = await _userManager.GetRolesAsync(userEntity);
-        
+
         var user = userEntity.ToDto(userRoles);
-        return Result<UserDto>.Succeed(user);
+        return Result<UserDto>.Ok(user);
     }
 }

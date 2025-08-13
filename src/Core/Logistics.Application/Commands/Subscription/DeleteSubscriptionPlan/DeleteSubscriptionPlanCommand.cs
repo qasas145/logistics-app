@@ -1,9 +1,8 @@
-﻿using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
 
 namespace Logistics.Application.Commands;
 
-public class DeleteSubscriptionPlanCommand : IRequest<Result>
+public class DeleteSubscriptionPlanCommand : IAppRequest
 {
     public Guid Id { get; set; }
 }

@@ -1,23 +1,24 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Mappings;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-internal sealed class GetEmployeeByIdHandler : RequestHandler<GetEmployeeByIdQuery, Result<EmployeeDto>>
+internal sealed class GetEmployeeByIdHandler : IAppRequestHandler<GetEmployeeByIdQuery, Result<EmployeeDto>>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
-    public GetEmployeeByIdHandler(ITenantUnityOfWork tenantUow)
+    public GetEmployeeByIdHandler(ITenantUnitOfWork tenantUow)
     {
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<Result<EmployeeDto>> HandleValidated(
-        GetEmployeeByIdQuery req, CancellationToken cancellationToken)
+    public async Task<Result<EmployeeDto>> Handle(
+        GetEmployeeByIdQuery req, CancellationToken ct)
     {
-        var employeeEntity = await _tenantUow.Repository<Employee>().GetByIdAsync(req.UserId);
+        var employeeEntity = await _tenantUow.Repository<Employee>().GetByIdAsync(req.UserId, ct);
 
         if (employeeEntity is null)
         {
@@ -25,6 +26,6 @@ internal sealed class GetEmployeeByIdHandler : RequestHandler<GetEmployeeByIdQue
         }
 
         var employeeDto = employeeEntity.ToDto();
-        return Result<EmployeeDto>.Succeed(employeeDto);
+        return Result<EmployeeDto>.Ok(employeeDto);
     }
 }

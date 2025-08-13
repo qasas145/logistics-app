@@ -1,10 +1,9 @@
-﻿using Logistics.Domain.Primitives.ValueObjects;
-using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Primitives.ValueObjects;
 
 namespace Logistics.Application.Commands;
 
-public class UpdateTenantCommand : IRequest<Result>
+public class UpdateTenantCommand : IAppRequest
 {
     public Guid Id { get; set; }
     public string? Name { get; set; }

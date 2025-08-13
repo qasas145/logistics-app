@@ -1,21 +1,22 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Mappings;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-internal sealed class GetTripHandler : RequestHandler<GetTripQuery, Result<TripDto>>
+internal sealed class GetTripHandler : IAppRequestHandler<GetTripQuery, Result<TripDto>>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
-    public GetTripHandler(ITenantUnityOfWork tenantUow)
+    public GetTripHandler(ITenantUnitOfWork tenantUow)
     {
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<Result<TripDto>> HandleValidated(
-        GetTripQuery req, CancellationToken cancellationToken)
+    public async Task<Result<TripDto>> Handle(
+        GetTripQuery req, CancellationToken ct)
     {
         var trip = await _tenantUow.Repository<Trip>().GetByIdAsync(req.TripId);
 
@@ -25,6 +26,6 @@ internal sealed class GetTripHandler : RequestHandler<GetTripQuery, Result<TripD
         }
 
         var tripeDto = trip.ToDto();
-        return Result<TripDto>.Succeed(tripeDto);
+        return Result<TripDto>.Ok(tripeDto);
     }
 }

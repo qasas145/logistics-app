@@ -1,25 +1,26 @@
-﻿using Logistics.Application.Specifications;
+using Logistics.Application.Abstractions;
+using Logistics.Application.Specifications;
 using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class DeleteEmployeeHandler : RequestHandler<DeleteEmployeeCommand, Result>
+internal sealed class DeleteEmployeeHandler : IAppRequestHandler<DeleteEmployeeCommand, Result>
 {
-    private readonly IMasterUnityOfWork _masterUow;
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly IMasterUnitOfWork _masterUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
     public DeleteEmployeeHandler(
-        IMasterUnityOfWork masterUow,
-        ITenantUnityOfWork tenantUow)
+        IMasterUnitOfWork masterUow,
+        ITenantUnitOfWork tenantUow)
     {
         _masterUow = masterUow;
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<Result> HandleValidated(
-        DeleteEmployeeCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        DeleteEmployeeCommand req, CancellationToken ct)
     {
         var tenant = _tenantUow.GetCurrentTenant();
         var employee = await _tenantUow.Repository<Employee>().GetByIdAsync(req.UserId);
@@ -36,10 +37,10 @@ internal sealed class DeleteEmployeeHandler : RequestHandler<DeleteEmployeeComma
         {
             user.Tenant = null;
         }
-        
+
         var employeeLoads = _tenantUow.Repository<Load>().ApplySpecification(new GetEmployeeLoads(employee.Id));
         // var truck = await _tenantRepository.GetAsync<Truck>(i => i.DriverId == employee.Id);
-        
+
         foreach (var load in employeeLoads)
         {
             if (load.AssignedDispatcherId == employee.Id)
@@ -47,10 +48,10 @@ internal sealed class DeleteEmployeeHandler : RequestHandler<DeleteEmployeeComma
                 load.AssignedDispatcher = null;
             }
         }
-        
+
         _tenantUow.Repository<Employee>().Delete(employee);
         await _tenantUow.SaveChangesAsync();
         await _masterUow.SaveChangesAsync();
-        return Result.Succeed();
+        return Result.Ok();
     }
 }

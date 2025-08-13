@@ -1,10 +1,11 @@
-﻿using Logistics.Application.Extensions;
+using Logistics.Application.Abstractions;
+using Logistics.Application.Extensions;
 using Logistics.Application.Services;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class CreateLoadHandler : RequestHandler<CreateLoadCommand, Result>
+internal sealed class CreateLoadHandler : IAppRequestHandler<CreateLoadCommand, Result>
 {
     private readonly ILoadService _loadService;
     private readonly IPushNotificationService _pushNotificationService;
@@ -17,8 +18,8 @@ internal sealed class CreateLoadHandler : RequestHandler<CreateLoadCommand, Resu
         _pushNotificationService = pushNotificationService;
     }
 
-    protected override async Task<Result> HandleValidated(
-        CreateLoadCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        CreateLoadCommand req, CancellationToken ct)
     {
         try
         {
@@ -32,11 +33,11 @@ internal sealed class CreateLoadHandler : RequestHandler<CreateLoadCommand, Resu
                 req.CustomerId,
                 req.AssignedTruckId,
                 req.AssignedDispatcherId);
-            
+
             var newLoad = await _loadService.CreateLoadAsync(createLoadParameters);
-            
+
             await _pushNotificationService.SendNewLoadNotificationAsync(newLoad);
-            return Result.Succeed();
+            return Result.Ok();
         }
         catch (InvalidOperationException e)
         {

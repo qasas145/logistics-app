@@ -1,12 +1,12 @@
-﻿using Logistics.Domain.Persistence;
+using Logistics.Domain.Persistence;
 
 namespace Logistics.DbMigrator.Data;
 
-internal class CreateSqlFunctionsWorker :IHostedService
+internal class CreateSqlFunctionsWorker : IHostedService
 {
     private readonly ILogger<CreateSqlFunctionsWorker> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
-    
+
     public CreateSqlFunctionsWorker(ILogger<CreateSqlFunctionsWorker> logger, IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
@@ -18,8 +18,8 @@ internal class CreateSqlFunctionsWorker :IHostedService
         try
         {
             using var scope = _scopeFactory.CreateScope();
-            var tenantUow = scope.ServiceProvider.GetRequiredService<ITenantUnityOfWork>();
-            
+            var tenantUow = scope.ServiceProvider.GetRequiredService<ITenantUnitOfWork>();
+
             _logger.LogInformation("Creating Stored Procedures");
             await CreateSqlFunction("CreateCompanyStats.psql", tenantUow);
             await CreateSqlFunction("CreateTrucksStats.psql", tenantUow);
@@ -37,7 +37,7 @@ internal class CreateSqlFunctionsWorker :IHostedService
         return Task.CompletedTask;
     }
 
-    private static async Task CreateSqlFunction(string fileName, ITenantUnityOfWork tenantUow)
+    private static async Task CreateSqlFunction(string fileName, ITenantUnitOfWork tenantUow)
     {
         var sql = await File.ReadAllTextAsync($"SqlFunctions/{fileName}");
         await tenantUow.ExecuteRawSql(sql);

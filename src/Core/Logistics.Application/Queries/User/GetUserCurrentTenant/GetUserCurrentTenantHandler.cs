@@ -1,23 +1,24 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Mappings;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-internal sealed class GetUserCurrentTenantHandler : 
-    RequestHandler<GetUserCurrentTenantQuery, Result<TenantDto>>
+internal sealed class GetUserCurrentTenantHandler :
+    IAppRequestHandler<GetUserCurrentTenantQuery, Result<TenantDto>>
 {
-    private readonly IMasterUnityOfWork _masterUow;
+    private readonly IMasterUnitOfWork _masterUow;
 
-    public GetUserCurrentTenantHandler(IMasterUnityOfWork masterUow)
+    public GetUserCurrentTenantHandler(IMasterUnitOfWork masterUow)
     {
         _masterUow = masterUow;
     }
 
-    protected override async Task<Result<TenantDto>> HandleValidated(
-        GetUserCurrentTenantQuery req, 
-        CancellationToken cancellationToken)
+    public async Task<Result<TenantDto>> Handle(
+        GetUserCurrentTenantQuery req,
+        CancellationToken ct)
     {
         var user = await _masterUow.Repository<User>().GetByIdAsync(req.UserId);
 
@@ -32,6 +33,6 @@ internal sealed class GetUserCurrentTenantHandler :
         }
 
         var tenantDto = user.Tenant.ToDto();
-        return Result<TenantDto>.Succeed(tenantDto);
+        return Result<TenantDto>.Ok(tenantDto);
     }
 }

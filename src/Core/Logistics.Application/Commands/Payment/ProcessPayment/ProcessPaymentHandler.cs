@@ -1,21 +1,22 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
-using Logistics.Shared.Models;
 using Logistics.Domain.Primitives.Enums;
+using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class ProcessPaymentHandler : RequestHandler<ProcessPaymentCommand, Result>
+internal sealed class ProcessPaymentHandler : IAppRequestHandler<ProcessPaymentCommand, Result>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
-    public ProcessPaymentHandler(ITenantUnityOfWork tenantUow)
+    public ProcessPaymentHandler(ITenantUnitOfWork tenantUow)
     {
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<Result> HandleValidated(
-        ProcessPaymentCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        ProcessPaymentCommand req, CancellationToken ct)
     {
         var payment = await _tenantUow.Repository<Payment>().GetByIdAsync(req.PaymentId);
 
@@ -28,6 +29,6 @@ internal sealed class ProcessPaymentHandler : RequestHandler<ProcessPaymentComma
         payment.Status = PaymentStatus.Paid;
         _tenantUow.Repository<Payment>().Update(payment);
         await _tenantUow.SaveChangesAsync();
-        return Result.Succeed();
+        return Result.Ok();
     }
 }

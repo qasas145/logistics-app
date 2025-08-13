@@ -1,9 +1,8 @@
-﻿using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
 
 namespace Logistics.Application.Commands;
 
-public class CancelSubscriptionCommand : IRequest<Result>
+public class CancelSubscriptionCommand : IAppRequest
 {
     public Guid Id { get; set; }
 }

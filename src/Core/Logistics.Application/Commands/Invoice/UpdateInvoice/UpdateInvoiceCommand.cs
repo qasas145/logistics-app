@@ -1,10 +1,9 @@
-﻿using Logistics.Shared.Models;
+using Logistics.Application.Abstractions;
 using Logistics.Domain.Primitives.Enums;
-using MediatR;
 
 namespace Logistics.Application.Commands;
 
-public class UpdateInvoiceCommand : IRequest<Result>
+public class UpdateInvoiceCommand : IAppRequest
 {
     public Guid Id { get; set; }
     public InvoiceStatus? InvoiceStatus { get; set; }

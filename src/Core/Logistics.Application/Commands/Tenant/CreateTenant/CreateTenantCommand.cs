@@ -1,10 +1,9 @@
-﻿using Logistics.Domain.Primitives.ValueObjects;
-using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Primitives.ValueObjects;
 
 namespace Logistics.Application.Commands;
 
-public class CreateTenantCommand : IRequest<Result>
+public class CreateTenantCommand : IAppRequest
 {
     public string Name { get; set; } = null!;
     public string? CompanyName { get; set; }

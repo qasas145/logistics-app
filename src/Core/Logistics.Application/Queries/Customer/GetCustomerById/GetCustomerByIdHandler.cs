@@ -1,21 +1,21 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Mappings;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-internal sealed class GetCustomerByIdHandler : RequestHandler<GetCustomerByIdQuery, Result<CustomerDto>>
+internal sealed class GetCustomerByIdHandler : IAppRequestHandler<GetCustomerByIdQuery, Result<CustomerDto>>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
-    public GetCustomerByIdHandler(ITenantUnityOfWork tenantUow)
+    public GetCustomerByIdHandler(ITenantUnitOfWork tenantUow)
     {
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<Result<CustomerDto>> HandleValidated(
-        GetCustomerByIdQuery req, CancellationToken cancellationToken)
+    public async Task<Result<CustomerDto>> Handle(GetCustomerByIdQuery req, CancellationToken ct)
     {
         var customerEntity = await _tenantUow.Repository<Customer>().GetByIdAsync(req.Id);
 
@@ -25,6 +25,6 @@ internal sealed class GetCustomerByIdHandler : RequestHandler<GetCustomerByIdQue
         }
 
         var customerDto = customerEntity.ToDto();
-        return Result<CustomerDto>.Succeed(customerDto);
+        return Result<CustomerDto>.Ok(customerDto);
     }
 }

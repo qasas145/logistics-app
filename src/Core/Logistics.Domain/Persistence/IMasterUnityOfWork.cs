@@ -1,16 +1,17 @@
-﻿using Logistics.Domain.Core;
+using Logistics.Domain.Core;
 
 namespace Logistics.Domain.Persistence;
 
-public interface IMasterUnityOfWork : IDisposable
+/// <summary>
+///     Unit of Work for master (cross-tenant) entities.
+/// </summary>
+public interface IMasterUnitOfWork : IUnitOfWork<IMasterEntity>
 {
-    IMasterRepository<TEntity, Guid> Repository<TEntity>() where TEntity : class, IEntity<Guid>, IMasterEntity;
-    
-    IMasterRepository<TEntity, TKey> Repository<TEntity, TKey>() where TEntity : class, IEntity<TKey>, IMasterEntity;
-    
-    /// <summary>
-    /// Save changes to database
-    /// </summary>
-    /// <returns>Number of rows modified after save changes.</returns>
-    Task<int> SaveChangesAsync();
+    /// <inheritdoc cref="IUnitOfWork{TMarker}.Repository{TEntity}" />
+    new IMasterRepository<TEntity, Guid> Repository<TEntity>()
+        where TEntity : class, IEntity<Guid>, IMasterEntity;
+
+    /// <inheritdoc cref="IUnitOfWork{TMarker}.Repository{TEntity, TKey}" />
+    new IMasterRepository<TEntity, TKey> Repository<TEntity, TKey>()
+        where TEntity : class, IEntity<TKey>, IMasterEntity;
 }

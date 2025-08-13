@@ -1,22 +1,21 @@
-﻿using Logistics.Application;
+using Logistics.Application.Abstractions;
 using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
-using Logistics.Domain.Services;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class DeleteSubscriptionPlanHandler : RequestHandler<DeleteSubscriptionPlanCommand, Result>
+internal sealed class DeleteSubscriptionPlanHandler : IAppRequestHandler<DeleteSubscriptionPlanCommand, Result>
 {
-    private readonly IMasterUnityOfWork _masterUow;
+    private readonly IMasterUnitOfWork _masterUow;
 
-    public DeleteSubscriptionPlanHandler(IMasterUnityOfWork masterUow)
+    public DeleteSubscriptionPlanHandler(IMasterUnitOfWork masterUow)
     {
         _masterUow = masterUow;
     }
 
-    protected override async Task<Result> HandleValidated(
-        DeleteSubscriptionPlanCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        DeleteSubscriptionPlanCommand req, CancellationToken ct)
     {
         var subscriptionPlan = await _masterUow.Repository<SubscriptionPlan>().GetByIdAsync(req.Id);
 
@@ -27,6 +26,6 @@ internal sealed class DeleteSubscriptionPlanHandler : RequestHandler<DeleteSubsc
 
         _masterUow.Repository<SubscriptionPlan>().Delete(subscriptionPlan);
         await _masterUow.SaveChangesAsync();
-        return Result.Succeed();
+        return Result.Ok();
     }
 }

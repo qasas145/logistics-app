@@ -1,24 +1,25 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class UpdateUserHandler : RequestHandler<UpdateUserCommand, Result>
+internal sealed class UpdateUserHandler : IAppRequestHandler<UpdateUserCommand, Result>
 {
-    private readonly IMasterUnityOfWork _masterUow;
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly IMasterUnitOfWork _masterUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
     public UpdateUserHandler(
-        IMasterUnityOfWork masterUow,
-        ITenantUnityOfWork tenantUow)
+        IMasterUnitOfWork masterUow,
+        ITenantUnitOfWork tenantUow)
     {
         _masterUow = masterUow;
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<Result> HandleValidated(
-        UpdateUserCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        UpdateUserCommand req, CancellationToken ct)
     {
         var user = await _masterUow.Repository<User>().GetByIdAsync(req.Id);
 
@@ -41,16 +42,16 @@ internal sealed class UpdateUserHandler : RequestHandler<UpdateUserCommand, Resu
         {
             user.PhoneNumber = req.PhoneNumber;
         }
-        
+
         if (req.TenantId.HasValue)
         {
             await UpdateTenantEmployeeDataAsync(req.TenantId.Value, user);
         }
-        
+
         _masterUow.Repository<User>().Update(user);
         await _masterUow.SaveChangesAsync();
         await _tenantUow.SaveChangesAsync();
-        return Result.Succeed();
+        return Result.Ok();
     }
 
     private async Task UpdateTenantEmployeeDataAsync(Guid tenantId, User user)

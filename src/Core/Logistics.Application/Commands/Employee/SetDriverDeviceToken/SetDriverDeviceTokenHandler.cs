@@ -1,20 +1,21 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class SetDriverDeviceTokenHandler : RequestHandler<SetDriverDeviceTokenCommand, Result>
+internal sealed class SetDriverDeviceTokenHandler : IAppRequestHandler<SetDriverDeviceTokenCommand, Result>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
-    public SetDriverDeviceTokenHandler(ITenantUnityOfWork tenantUow)
+    public SetDriverDeviceTokenHandler(ITenantUnitOfWork tenantUow)
     {
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<Result> HandleValidated(
-        SetDriverDeviceTokenCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        SetDriverDeviceTokenCommand req, CancellationToken ct)
     {
         var driver = await _tenantUow.Repository<Employee>().GetByIdAsync(req.UserId);
 
@@ -25,12 +26,12 @@ internal sealed class SetDriverDeviceTokenHandler : RequestHandler<SetDriverDevi
 
         if (!string.IsNullOrEmpty(driver.DeviceToken) && driver.DeviceToken == req.DeviceToken)
         {
-            return Result.Succeed();
+            return Result.Ok();
         }
 
         driver.DeviceToken = req.DeviceToken;
         _tenantUow.Repository<Employee>().Update(driver);
         await _tenantUow.SaveChangesAsync();
-        return Result.Succeed();
+        return Result.Ok();
     }
 }

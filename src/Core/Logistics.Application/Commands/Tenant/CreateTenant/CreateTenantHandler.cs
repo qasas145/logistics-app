@@ -1,25 +1,26 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
-using Logistics.Domain.Services;
 using Logistics.Domain.Primitives.ValueObjects;
+using Logistics.Domain.Services;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class CreateTenantHandler : RequestHandler<CreateTenantCommand, Result>
+internal sealed class CreateTenantHandler : IAppRequestHandler<CreateTenantCommand, Result>
 {
+    private readonly IMasterUnitOfWork _masterUow;
     private readonly ITenantDatabaseService _tenantDatabase;
-    private readonly IMasterUnityOfWork _masterUow;
 
     public CreateTenantHandler(
         ITenantDatabaseService tenantDatabase,
-        IMasterUnityOfWork masterUow)
+        IMasterUnitOfWork masterUow)
     {
         _tenantDatabase = tenantDatabase;
         _masterUow = masterUow;
     }
 
-    protected override async Task<Result> HandleValidated(CreateTenantCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(CreateTenantCommand req, CancellationToken ct)
     {
         var tenantName = req.Name.Trim().ToLower();
         var tenant = new Tenant
@@ -33,7 +34,7 @@ internal sealed class CreateTenantHandler : RequestHandler<CreateTenantCommand, 
         };
 
         var existingTenant = await _masterUow.Repository<Tenant>().GetAsync(i => i.Name == tenant.Name);
-        
+
         if (existingTenant is not null)
         {
             return Result.Fail($"Tenant name '{tenant.Name}' is already taken, please chose another name");
@@ -47,6 +48,6 @@ internal sealed class CreateTenantHandler : RequestHandler<CreateTenantCommand, 
 
         await _masterUow.Repository<Tenant>().AddAsync(tenant);
         await _masterUow.SaveChangesAsync();
-        return Result.Succeed();
+        return Result.Ok();
     }
 }

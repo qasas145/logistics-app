@@ -1,9 +1,9 @@
-﻿using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
+using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-public class GetUserCurrentTenantQuery : IRequest<Result<TenantDto>>
+public class GetUserCurrentTenantQuery : IAppRequest<Result<TenantDto>>
 {
     public Guid UserId { get; set; }
 }

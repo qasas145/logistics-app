@@ -1,9 +1,9 @@
-﻿using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
+using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-public class GetEmployeeByIdQuery : IRequest<Result<EmployeeDto>>
+public class GetEmployeeByIdQuery : IAppRequest<Result<EmployeeDto>>
 {
     public Guid UserId { get; set; }
 }

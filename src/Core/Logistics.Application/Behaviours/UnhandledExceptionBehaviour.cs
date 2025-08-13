@@ -1,11 +1,12 @@
-﻿using Logistics.Shared.Models;
+using Logistics.Application.Abstractions;
+using Logistics.Shared.Models;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Logistics.Application.Behaviours;
 
-public sealed class UnhandledExceptionBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> 
-    where TRequest : IRequest<TResponse>
+public sealed class UnhandledExceptionBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IAppRequest<TResponse>
     where TResponse : IResult, new()
 {
     private readonly ILogger<UnhandledExceptionBehaviour<TRequest, TResponse>> _logger;
@@ -22,7 +23,7 @@ public sealed class UnhandledExceptionBehaviour<TRequest, TResponse> : IPipeline
     {
         try
         {
-            return await next();
+            return await next(cancellationToken);
         }
         catch (Exception ex)
         {

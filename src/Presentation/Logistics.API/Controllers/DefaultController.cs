@@ -1,11 +1,12 @@
-﻿using Logistics.Shared.Models;
+using Logistics.Shared.Models;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Logistics.API.Controllers;
 
-[Route("")]
 [ApiController]
+[Route("")]
 public class DefaultController : ControllerBase
 {
     [HttpGet]
@@ -13,6 +14,6 @@ public class DefaultController : ControllerBase
     [AllowAnonymous]
     public IActionResult Get()
     {
-        return Ok(Result<string>.Succeed("Logistics API is running"));
+        return Ok(Result<string>.Ok("Logistics API is running"));
     }
 }

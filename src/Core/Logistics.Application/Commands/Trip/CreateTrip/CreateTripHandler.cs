@@ -1,4 +1,5 @@
-﻿using Logistics.Application.Services;
+using Logistics.Application.Abstractions;
+using Logistics.Application.Services;
 using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Shared.Models;
@@ -6,15 +7,15 @@ using Microsoft.Extensions.Logging;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class CreateTripHandler : RequestHandler<CreateTripCommand, Result>
+internal sealed class CreateTripHandler : IAppRequestHandler<CreateTripCommand, Result>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
     private readonly ILoadService _loadService;
-    private readonly IPushNotificationService _pushNotificationService;
     private readonly ILogger<CreateTripHandler> _logger;
+    private readonly IPushNotificationService _pushNotificationService;
+    private readonly ITenantUnitOfWork _tenantUow;
 
     public CreateTripHandler(
-        ITenantUnityOfWork tenantUow,
+        ITenantUnitOfWork tenantUow,
         ILoadService loadService,
         IPushNotificationService pushNotificationService,
         ILogger<CreateTripHandler> logger)
@@ -25,8 +26,8 @@ internal sealed class CreateTripHandler : RequestHandler<CreateTripCommand, Resu
         _logger = logger;
     }
 
-    protected override async Task<Result> HandleValidated(
-        CreateTripCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        CreateTripCommand req, CancellationToken ct)
     {
         var truck = await _tenantUow.Repository<Truck>().GetByIdAsync(req.TruckId);
 
@@ -34,13 +35,13 @@ internal sealed class CreateTripHandler : RequestHandler<CreateTripCommand, Resu
         {
             return Result.Fail($"Could not find the truck with ID '{req.TruckId}'");
         }
-        
+
         var existingLoads = await GetExistingLoadsAsync(req, truck);
         var newLoads = await CreateNewLoads(req);
-        
+
         // List of all loads for the trip
-        var loads = new List<Load>([..existingLoads, ..newLoads]);
-        
+        var loads = new List<Load>([.. existingLoads, .. newLoads]);
+
         var trip = Trip.Create(req.Name, req.PlannedStart, truck, loads);
 
         await _tenantUow.Repository<Trip>().AddAsync(trip);
@@ -48,11 +49,11 @@ internal sealed class CreateTripHandler : RequestHandler<CreateTripCommand, Resu
         _logger.LogInformation(
             "Created trip '{TripName}' with ID '{TripId}' for truck '{TruckId}'",
             trip.Name, trip.Id, req.TruckId);
-        return Result.Succeed();
+        return Result.Ok();
     }
 
     /// <summary>
-    /// Creates new loads based on the provided command.
+    ///     Creates new loads based on the provided command.
     /// </summary>
     private async Task<IEnumerable<Load>> CreateNewLoads(CreateTripCommand command)
     {
@@ -60,7 +61,7 @@ internal sealed class CreateTripHandler : RequestHandler<CreateTripCommand, Resu
         {
             return [];
         }
-        
+
         var loads = new List<Load>();
         var newLoadsCount = 0;
         foreach (var newLoad in command.NewLoads)
@@ -75,21 +76,21 @@ internal sealed class CreateTripHandler : RequestHandler<CreateTripCommand, Resu
                 newLoad.CustomerId,
                 command.TruckId,
                 newLoad.AssignedDispatcherId);
-                
+
             var newLoadEntity = await _loadService.CreateLoadAsync(createLoadParameters);
             loads.Add(newLoadEntity);
             newLoadsCount++;
         }
-            
+
         _logger.LogInformation(
             "Created {Count} new loads for trip '{TripName}' with truck '{TruckId}'",
             newLoadsCount, command.Name, command.TruckId);
         return loads;
     }
-    
+
     /// <summary>
-    /// Retrieves existing loads based on the provided command and assigns them to the specified truck.
-    /// Clears the trip stop to avoid conflicts with the new trip.
+    ///     Retrieves existing loads based on the provided command and assigns them to the specified truck.
+    ///     Clears the trip stop to avoid conflicts with the new trip.
     /// </summary>
     private async Task<List<Load>> GetExistingLoadsAsync(CreateTripCommand command, Truck truck)
     {
@@ -106,7 +107,7 @@ internal sealed class CreateTripHandler : RequestHandler<CreateTripCommand, Resu
             load.AssignedTruckId = truck.Id;
             load.TripStop = null; // Clear the trip stop to avoid conflicts
         }
-        
+
         _logger.LogInformation(
             "Retrieved {Count} existing loads for trip '{TripName}' with truck '{TruckId}'",
             loads.Count, command.Name, command.TruckId);

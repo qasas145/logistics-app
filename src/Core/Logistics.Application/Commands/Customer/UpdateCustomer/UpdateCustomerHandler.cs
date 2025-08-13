@@ -1,22 +1,22 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class UpdateCustomerHandler : RequestHandler<UpdateCustomerCommand, Result>
+internal sealed class UpdateCustomerHandler : IAppRequestHandler<UpdateCustomerCommand, Result>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
-    public UpdateCustomerHandler(ITenantUnityOfWork tenantUow)
+    public UpdateCustomerHandler(ITenantUnitOfWork tenantUow)
     {
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<Result> HandleValidated(
-        UpdateCustomerCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateCustomerCommand req, CancellationToken ct)
     {
-        var customerEntity = await _tenantUow.Repository<Customer>().GetByIdAsync(req.Id);
+        var customerEntity = await _tenantUow.Repository<Customer>().GetByIdAsync(req.Id, ct);
 
         if (customerEntity is null)
         {
@@ -25,7 +25,7 @@ internal sealed class UpdateCustomerHandler : RequestHandler<UpdateCustomerComma
 
         customerEntity.Name = req.Name;
         _tenantUow.Repository<Customer>().Update(customerEntity);
-        await _tenantUow.SaveChangesAsync();
-        return Result.Succeed();
+        await _tenantUow.SaveChangesAsync(ct);
+        return Result.Ok();
     }
 }

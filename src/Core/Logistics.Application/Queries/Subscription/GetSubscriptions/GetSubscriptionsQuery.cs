@@ -1,8 +1,8 @@
-﻿using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
+using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-public sealed class GetSubscriptionsQuery : SearchableQuery, IRequest<PagedResult<SubscriptionDto>>
+public sealed class GetSubscriptionsQuery : SearchableQuery, IAppRequest<PagedResult<SubscriptionDto>>
 {
 }

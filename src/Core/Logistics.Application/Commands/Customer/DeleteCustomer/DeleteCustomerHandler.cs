@@ -1,30 +1,30 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class DeleteCustomerHandler : RequestHandler<DeleteCustomerCommand, Result>
+internal sealed class DeleteCustomerHandler : IAppRequestHandler<DeleteCustomerCommand, Result>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
-    public DeleteCustomerHandler(ITenantUnityOfWork tenantUow)
+    public DeleteCustomerHandler(ITenantUnitOfWork tenantUow)
     {
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<Result> HandleValidated(
-        DeleteCustomerCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(DeleteCustomerCommand req, CancellationToken ct)
     {
-        var customer = await _tenantUow.Repository<Customer>().GetByIdAsync(req.Id);
+        var customer = await _tenantUow.Repository<Customer>().GetByIdAsync(req.Id, ct);
 
         if (customer is null)
         {
             return Result.Fail($"Could not find a customer with ID {req.Id}");
         }
-        
+
         _tenantUow.Repository<Customer>().Delete(customer);
-        await _tenantUow.SaveChangesAsync();
-        return Result.Succeed();
+        await _tenantUow.SaveChangesAsync(ct);
+        return Result.Ok();
     }
 }

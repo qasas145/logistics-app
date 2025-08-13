@@ -1,21 +1,22 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Mappings;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-internal sealed class GetPaymentHandler : RequestHandler<GetPaymentQuery, Result<PaymentDto>>
+internal sealed class GetPaymentHandler : IAppRequestHandler<GetPaymentQuery, Result<PaymentDto>>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
-    public GetPaymentHandler(ITenantUnityOfWork tenantUow)
+    public GetPaymentHandler(ITenantUnitOfWork tenantUow)
     {
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<Result<PaymentDto>> HandleValidated(
-        GetPaymentQuery req, CancellationToken cancellationToken)
+    public async Task<Result<PaymentDto>> Handle(
+        GetPaymentQuery req, CancellationToken ct)
     {
         var paymentEntity = await _tenantUow.Repository<Payment>().GetByIdAsync(req.Id);
 
@@ -25,6 +26,6 @@ internal sealed class GetPaymentHandler : RequestHandler<GetPaymentQuery, Result
         }
 
         var paymentDto = paymentEntity.ToDto();
-        return Result<PaymentDto>.Succeed(paymentDto);
+        return Result<PaymentDto>.Ok(paymentDto);
     }
 }

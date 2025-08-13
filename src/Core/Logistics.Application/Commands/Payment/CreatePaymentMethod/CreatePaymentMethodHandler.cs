@@ -1,4 +1,5 @@
-﻿using Logistics.Application.Services;
+using Logistics.Application.Abstractions;
+using Logistics.Application.Services;
 using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Domain.Primitives.Enums;
@@ -7,14 +8,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class CreatePaymentMethodHandler : RequestHandler<CreatePaymentMethodCommand, Result>
+internal sealed class CreatePaymentMethodHandler : IAppRequestHandler<CreatePaymentMethodCommand, Result>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
-    private readonly IStripeService _stripeService;
     private readonly ILogger<CreatePaymentMethodHandler> _logger;
+    private readonly IStripeService _stripeService;
+    private readonly ITenantUnitOfWork _tenantUow;
 
     public CreatePaymentMethodHandler(
-        ITenantUnityOfWork tenantUow,
+        ITenantUnitOfWork tenantUow,
         IStripeService stripeService,
         ILogger<CreatePaymentMethodHandler> logger)
     {
@@ -23,8 +24,8 @@ internal sealed class CreatePaymentMethodHandler : RequestHandler<CreatePaymentM
         _logger = logger;
     }
 
-    protected override async Task<Result> HandleValidated(
-        CreatePaymentMethodCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        CreatePaymentMethodCommand req, CancellationToken ct)
     {
         // If there are no payment methods for the tenant, set the first one as default
         var paymentMethodsCount = await _tenantUow.Repository<PaymentMethod>().CountAsync();
@@ -43,18 +44,17 @@ internal sealed class CreatePaymentMethodHandler : RequestHandler<CreatePaymentM
             default:
                 return Result.Fail($"Unsupported payment method type: {req.Type}");
         }
-        
+
         await _tenantUow.SaveChangesAsync();
-        return Result.Succeed();
+        return Result.Ok();
     }
-    
+
     private async Task CreateCardPaymentMethod(
         CreatePaymentMethodCommand command, bool setDefault = false)
     {
         var tenant = _tenantUow.GetCurrentTenant();
         var paymentMethod = new CardPaymentMethod
         {
-            Type = PaymentMethodType.Card,
             CardNumber = command.CardNumber!.Replace(" ", ""),
             Cvc = command.Cvc!,
             ExpMonth = command.ExpMonth!.Value,
@@ -65,21 +65,20 @@ internal sealed class CreatePaymentMethodHandler : RequestHandler<CreatePaymentM
             VerificationStatus = PaymentMethodVerificationStatus.Verified,
             StripePaymentMethodId = command.StripePaymentMethodId
         };
-        
+
         //await _stripeService.AddPaymentMethodAsync(paymentMethod, tenant);
         await _tenantUow.Repository<CardPaymentMethod>().AddAsync(paymentMethod);
         _logger.LogInformation(
             "Created card payment method for tenant {TenantId} with last 4 digits {Last4}",
             tenant.Id, command.CardNumber![^4..]);
     }
-    
+
     private async Task CreateUsBankAccountPaymentMethod(
         CreatePaymentMethodCommand command, bool setDefault = false)
     {
         var tenant = _tenantUow.GetCurrentTenant();
         var paymentMethod = new UsBankAccountPaymentMethod
         {
-            Type = PaymentMethodType.UsBankAccount,
             AccountNumber = command.AccountNumber!.Replace(" ", ""),
             AccountHolderName = command.AccountHolderName!,
             BankName = command.BankName!,
@@ -92,21 +91,20 @@ internal sealed class CreatePaymentMethodHandler : RequestHandler<CreatePaymentM
             VerificationUrl = command.VerificationUrl,
             StripePaymentMethodId = command.StripePaymentMethodId
         };
-        
+
         //await _stripeService.AddPaymentMethodAsync(paymentMethod, tenant);
         await _tenantUow.Repository<UsBankAccountPaymentMethod>().AddAsync(paymentMethod);
         _logger.LogInformation(
             "Created US bank account payment method for tenant {TenantId} with last 4 digits {Last4}",
             tenant.Id, command.AccountNumber![^4..]);
     }
-    
+
     private async Task CreateInternationalBankAccountPaymentMethod(
         CreatePaymentMethodCommand command, bool setDefault = false)
     {
         var tenant = _tenantUow.GetCurrentTenant();
-        var paymentMethod = new BankAccountPaymentMethod()
+        var paymentMethod = new BankAccountPaymentMethod
         {
-            Type = PaymentMethodType.InternationalBankAccount,
             AccountNumber = command.AccountNumber!,
             AccountHolderName = command.AccountHolderName!,
             BankName = command.BankName!,
@@ -115,9 +113,9 @@ internal sealed class CreatePaymentMethodHandler : RequestHandler<CreatePaymentM
             IsDefault = setDefault,
             VerificationStatus = PaymentMethodVerificationStatus.Verified
         };
-        
+
         // TODO: Stripe does not support international bank accounts yet
-        
+
         await _tenantUow.Repository<BankAccountPaymentMethod>().AddAsync(paymentMethod);
         _logger.LogInformation(
             "Created international bank account payment method for tenant {TenantId} with last 4 digits {Last4}",

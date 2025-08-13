@@ -1,8 +1,8 @@
-﻿using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
+using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-public class GetAppRolesQuery : SearchableQuery, IRequest<PagedResult<RoleDto>>
+public class GetAppRolesQuery : SearchableQuery, IAppRequest<PagedResult<RoleDto>>
 {
 }

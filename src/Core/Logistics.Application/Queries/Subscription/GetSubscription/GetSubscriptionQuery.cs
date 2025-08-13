@@ -1,9 +1,9 @@
-﻿using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
+using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-public sealed class GetSubscriptionQuery : IRequest<Result<SubscriptionDto>>
+public sealed class GetSubscriptionQuery : IAppRequest<Result<SubscriptionDto>>
 {
     public Guid Id { get; set; }
 }

@@ -1,9 +1,8 @@
-﻿using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
 
 namespace Logistics.Application.Commands;
 
-public class DeleteTruckCommand : IRequest<Result>
+public class DeleteTruckCommand : IAppRequest
 {
     public Guid Id { get; set; }
 }

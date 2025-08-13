@@ -1,9 +1,8 @@
-﻿using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
 
 namespace Logistics.Application.Commands;
 
-public class SetDriverDeviceTokenCommand : IRequest<Result>
+public class SetDriverDeviceTokenCommand : IAppRequest
 {
     public Guid UserId { get; set; }
     public string? DeviceToken { get; set; }

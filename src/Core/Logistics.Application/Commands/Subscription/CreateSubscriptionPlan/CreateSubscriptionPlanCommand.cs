@@ -1,10 +1,9 @@
-﻿using Logistics.Domain.Primitives.Enums;
-using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Primitives.Enums;
 
 namespace Logistics.Application.Commands;
 
-public class CreateSubscriptionPlanCommand : IRequest<Result>
+public class CreateSubscriptionPlanCommand : IAppRequest
 {
     public string Name { get; set; } = null!;
     public string? Description { get; set; }

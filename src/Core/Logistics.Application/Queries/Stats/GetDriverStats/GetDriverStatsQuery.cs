@@ -1,9 +1,9 @@
-﻿using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
+using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-public class GetDriverStatsQuery : IRequest<Result<DriverStatsDto>>
+public class GetDriverStatsQuery : IAppRequest<Result<DriverStatsDto>>
 {
     public Guid UserId { get; set; }
 }

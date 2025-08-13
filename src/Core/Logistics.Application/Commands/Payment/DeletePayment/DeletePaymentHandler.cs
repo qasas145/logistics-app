@@ -1,20 +1,21 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class DeletePaymentHandler : RequestHandler<DeletePaymentCommand, Result>
+internal sealed class DeletePaymentHandler : IAppRequestHandler<DeletePaymentCommand, Result>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
-    public DeletePaymentHandler(ITenantUnityOfWork tenantUow)
+    public DeletePaymentHandler(ITenantUnitOfWork tenantUow)
     {
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<Result> HandleValidated(
-        DeletePaymentCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        DeletePaymentCommand req, CancellationToken ct)
     {
         var payment = await _tenantUow.Repository<Payment>().GetByIdAsync(req.Id);
 
@@ -22,10 +23,10 @@ internal sealed class DeletePaymentHandler : RequestHandler<DeletePaymentCommand
         {
             return Result.Fail($"Could not find a payment with ID {req.Id}");
         }
-            
-        
+
+
         _tenantUow.Repository<Payment>().Delete(payment);
         await _tenantUow.SaveChangesAsync();
-        return Result.Succeed();
+        return Result.Ok();
     }
 }

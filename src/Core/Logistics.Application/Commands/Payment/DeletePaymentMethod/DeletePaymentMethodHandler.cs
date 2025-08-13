@@ -1,4 +1,5 @@
-﻿using Logistics.Application.Services;
+using Logistics.Application.Abstractions;
+using Logistics.Application.Services;
 using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Shared.Models;
@@ -6,14 +7,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class DeletePaymentMethodHandler : RequestHandler<DeletePaymentMethodCommand, Result>
+internal sealed class DeletePaymentMethodHandler : IAppRequestHandler<DeletePaymentMethodCommand, Result>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
-    private readonly IStripeService _stripeService;
     private readonly ILogger<DeletePaymentMethodHandler> _logger;
+    private readonly IStripeService _stripeService;
+    private readonly ITenantUnitOfWork _tenantUow;
 
     public DeletePaymentMethodHandler(
-        ITenantUnityOfWork tenantUow,
+        ITenantUnitOfWork tenantUow,
         IStripeService stripeService,
         ILogger<DeletePaymentMethodHandler> logger)
     {
@@ -22,8 +23,8 @@ internal sealed class DeletePaymentMethodHandler : RequestHandler<DeletePaymentM
         _logger = logger;
     }
 
-    protected override async Task<Result> HandleValidated(
-        DeletePaymentMethodCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        DeletePaymentMethodCommand req, CancellationToken ct)
     {
         var paymentMethod = await _tenantUow.Repository<PaymentMethod>().GetByIdAsync(req.Id);
 
@@ -36,6 +37,6 @@ internal sealed class DeletePaymentMethodHandler : RequestHandler<DeletePaymentM
         _tenantUow.Repository<PaymentMethod>().Delete(paymentMethod);
         await _tenantUow.SaveChangesAsync();
         _logger.LogInformation("Deleted payment method with ID {Id}", paymentMethod.Id);
-        return Result.Succeed();
+        return Result.Ok();
     }
 }

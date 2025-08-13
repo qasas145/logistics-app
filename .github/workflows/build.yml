@@ -11,7 +11,7 @@ env:
   CLIENT_PROJECTS_DIR: ./src/Client
 
 jobs:
-  build-api:
+  build-backend:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,6 +21,12 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
+
+      - name: Install dependencies
+        run: dotnet restore
+
+      - name: Verify formatting
+        run: dotnet format --verify-no-changes --no-restore
 
       - name: Build Web API
         run: dotnet build ${{ env.PRESENTATION_PROJECTS_DIR }}/Logistics.API/Logistics.API.csproj
@@ -64,6 +70,12 @@ jobs:
           dotnet workload install android
           dotnet workload install ios
           dotnet workload install maui
+
+      - name: Install dependencies
+        run: dotnet restore
+
+      - name: Verify formatting
+        run: dotnet format --verify-no-changes --no-restore
 
       - name: Build Maui App
         run: dotnet build ${{ env.CLIENT_PROJECTS_DIR }}/Logistics.DriverApp/Logistics.DriverApp.csproj

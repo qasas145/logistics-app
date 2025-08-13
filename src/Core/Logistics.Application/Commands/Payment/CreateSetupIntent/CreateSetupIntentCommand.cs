@@ -1,8 +1,8 @@
-﻿using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
+using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-public class CreateSetupIntentCommand : IRequest<Result<SetupIntentDto>>
+public class CreateSetupIntentCommand : IAppRequest<Result<SetupIntentDto>>
 {
 }

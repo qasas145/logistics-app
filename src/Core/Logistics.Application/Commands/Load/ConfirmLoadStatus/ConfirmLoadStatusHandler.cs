@@ -1,25 +1,26 @@
-﻿using Logistics.Application.Services;
+using Logistics.Application.Abstractions;
+using Logistics.Application.Services;
 using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class ConfirmLoadStatusHandler : RequestHandler<ConfirmLoadStatusCommand, Result>
+internal sealed class ConfirmLoadStatusHandler : IAppRequestHandler<ConfirmLoadStatusCommand, Result>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
     private readonly INotificationService _notificationService;
+    private readonly ITenantUnitOfWork _tenantUow;
 
     public ConfirmLoadStatusHandler(
-        ITenantUnityOfWork tenantUow,
+        ITenantUnitOfWork tenantUow,
         INotificationService notificationService)
     {
         _tenantUow = tenantUow;
         _notificationService = notificationService;
     }
 
-    protected override async Task<Result> HandleValidated(
-        ConfirmLoadStatusCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        ConfirmLoadStatusCommand req, CancellationToken ct)
     {
         var load = await _tenantUow.Repository<Load>().GetByIdAsync(req.LoadId);
 
@@ -30,7 +31,7 @@ internal sealed class ConfirmLoadStatusHandler : RequestHandler<ConfirmLoadStatu
 
         var loadStatus = req.LoadStatus!.Value;
         load.SetStatus(loadStatus);
-        
+
         _tenantUow.Repository<Load>().Update(load);
         var changes = await _tenantUow.SaveChangesAsync();
 
@@ -38,8 +39,8 @@ internal sealed class ConfirmLoadStatusHandler : RequestHandler<ConfirmLoadStatu
         {
             await SendNotificationAsync(load);
         }
-        
-        return Result.Succeed();
+
+        return Result.Ok();
     }
 
     private async Task SendNotificationAsync(Load load)

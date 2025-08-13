@@ -1,10 +1,9 @@
-﻿using Logistics.Shared.Models;
+using Logistics.Application.Abstractions;
 using Logistics.Domain.Primitives.Enums;
-using MediatR;
 
 namespace Logistics.Application.Commands;
 
-public class UpdateEmployeeCommand : IRequest<Result>
+public class UpdateEmployeeCommand : IAppRequest
 {
     public Guid UserId { get; set; }
     public string? Role { get; set; }

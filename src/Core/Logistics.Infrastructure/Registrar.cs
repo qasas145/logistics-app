@@ -1,7 +1,9 @@
-﻿using Logistics.Infrastructure.Builder;
+using Logistics.Infrastructure.Builder;
+using Logistics.Infrastructure.Extensions;
+using Logistics.Infrastructure.Interceptors;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Logistics.Infrastructure.Interceptors;
 
 namespace Logistics.Infrastructure;
 
@@ -17,14 +19,18 @@ public static class Registrar
     /// <param name="configuration">The configuration.</param>
     /// <returns>The infrastructure builder.</returns>
     public static IInfrastructureBuilder AddInfrastructureLayer(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddMediatR(cfg => 
+        services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssemblyContaining<DispatchDomainEventsInterceptor>());
-        
+
         services.AddScoped<DispatchDomainEventsInterceptor>();
         services.AddScoped<AuditableEntitySaveChangesInterceptor>();
+
+        // Blob Storage (Azure or File based on configuration)
+        services.AddFileBlobStorage(configuration);
+
         return new InfrastructureBuilder(services, configuration);
     }
 }

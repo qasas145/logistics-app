@@ -1,4 +1,5 @@
-﻿using Logistics.Application.Specifications;
+using Logistics.Application.Abstractions;
+using Logistics.Application.Specifications;
 using Logistics.Domain.Entities;
 using Logistics.Domain.Extensions;
 using Logistics.Domain.Persistence;
@@ -6,20 +7,20 @@ using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-internal sealed class GetDailyGrossesHandler : RequestHandler<GetDailyGrossesQuery, Result<DailyGrossesDto>>
+internal sealed class GetDailyGrossesHandler : IAppRequestHandler<GetDailyGrossesQuery, Result<DailyGrossesDto>>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
-    public GetDailyGrossesHandler(ITenantUnityOfWork tenantUow)
+    public GetDailyGrossesHandler(ITenantUnitOfWork tenantUow)
     {
         _tenantUow = tenantUow;
     }
-    
-    protected override async Task<Result<DailyGrossesDto>> HandleValidated(
-        GetDailyGrossesQuery req, CancellationToken cancellationToken)
+
+    public async Task<Result<DailyGrossesDto>> Handle(
+        GetDailyGrossesQuery req, CancellationToken ct)
     {
         var truckId = req.TruckId;
-        
+
         if (req.UserId.HasValue)
         {
             var truck = await _tenantUow.Repository<Truck>().GetAsync(i => i.MainDriverId == req.UserId.Value ||
@@ -29,17 +30,17 @@ internal sealed class GetDailyGrossesHandler : RequestHandler<GetDailyGrossesQue
             {
                 return Result<DailyGrossesDto>.Fail($"Could not find a truck with driver ID '{req.UserId}'");
             }
-            
+
             truckId = truck.Id;
         }
-        
+
         var spec = new FilterLoadsByDeliveryDate(truckId, req.StartDate, req.EndDate);
-        
+
         var days = req.StartDate.DaysBetween(req.EndDate);
         var dict = days.ToDictionary(
-            k => (k.Year, k.Month, k.Day), 
+            k => (k.Year, k.Month, k.Day),
             m => new DailyGrossDto(m.Year, m.Month, m.Day));
-        
+
         var filteredLoads = _tenantUow.Repository<Load>().ApplySpecification(spec).ToArray();
 
         foreach (var load in filteredLoads)
@@ -47,9 +48,11 @@ internal sealed class GetDailyGrossesHandler : RequestHandler<GetDailyGrossesQue
             var date = load.DeliveryDate!.Value;
             var key = (date.Year, date.Month, date.Day);
 
-            if (!dict.ContainsKey(key)) 
+            if (!dict.ContainsKey(key))
+            {
                 continue;
-            
+            }
+
             dict[key].Gross += load.DeliveryCost;
             dict[key].Distance += load.Distance;
             dict[key].DriverShare += load.CalcDriverShare();
@@ -59,6 +62,6 @@ internal sealed class GetDailyGrossesHandler : RequestHandler<GetDailyGrossesQue
         {
             Data = dict.Values
         };
-        return Result<DailyGrossesDto>.Succeed(dailyGrosses);
+        return Result<DailyGrossesDto>.Ok(dailyGrosses);
     }
 }

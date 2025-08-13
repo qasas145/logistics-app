@@ -1,4 +1,5 @@
-﻿using Logistics.Application.Specifications;
+using Logistics.Application.Abstractions;
+using Logistics.Application.Specifications;
 using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Mappings;
@@ -6,27 +7,25 @@ using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-internal sealed class GetCustomersHandler : RequestHandler<GetCustomersQuery, PagedResult<CustomerDto>>
+internal sealed class GetCustomersHandler : IAppRequestHandler<GetCustomersQuery, PagedResult<CustomerDto>>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
-    public GetCustomersHandler(ITenantUnityOfWork tenantUow)
+    public GetCustomersHandler(ITenantUnitOfWork tenantUow)
     {
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<PagedResult<CustomerDto>> HandleValidated(
-        GetCustomersQuery req, 
-        CancellationToken cancellationToken)
+    public async Task<PagedResult<CustomerDto>> Handle(GetCustomersQuery req, CancellationToken ct)
     {
-        var totalItems = await _tenantUow.Repository<Customer>().CountAsync();
+        var totalItems = await _tenantUow.Repository<Customer>().CountAsync(ct: ct);
         var specification = new SearchCustomers(req.Search, req.OrderBy, req.Page, req.PageSize);
-        
+
         var customers = _tenantUow.Repository<Customer>()
             .ApplySpecification(specification)
             .Select(i => i.ToDto())
             .ToArray();
-        
+
         return PagedResult<CustomerDto>.Succeed(customers, totalItems, req.PageSize);
     }
 }

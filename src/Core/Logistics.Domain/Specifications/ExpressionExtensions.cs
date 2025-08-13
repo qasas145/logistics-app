@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
 namespace Logistics.Domain.Specifications;
 
@@ -6,6 +6,10 @@ public static class ExpressionExtensions
 {
     /// <summary>
     /// Combines two predicate expressions: left AND right.
+    /// If either expression is null, it returns the other one.
+    /// For example, if left is "x => x.Age > 18" and right is "x => x.IsActive",
+    /// the result will be "x => x.Age > 18 && x.IsActive".
+    /// If both expressions are null, it returns null.
     /// </summary>
     /// <param name="left">The first expression.</param>
     /// <param name="right">The second expression.</param>
@@ -16,14 +20,16 @@ public static class ExpressionExtensions
         Expression<Func<T, bool>>? right)
     {
         // handle nulls gracefully
-        if (left is null) return right;
-        if (right is null) return left;
+        if (left is null)
+            return right;
+        if (right is null)
+            return left;
 
         // x =>
         var param = Expression.Parameter(typeof(T), "x");
 
         // invoke both sides with the same parameter
-        var leftBody  = ReplaceParameter(left,  param);
+        var leftBody = ReplaceParameter(left, param);
         var rightBody = ReplaceParameter(right, param);
 
         var body = Expression.AndAlso(leftBody, rightBody);
@@ -48,7 +54,7 @@ public static class ExpressionExtensions
     /// A visitor that replaces a specific parameter in an expression with a new one.
     /// </summary>
     private sealed class ParameterReplacer(
-        ParameterExpression oldParam, 
+        ParameterExpression oldParam,
         ParameterExpression newParam)
         : ExpressionVisitor
     {

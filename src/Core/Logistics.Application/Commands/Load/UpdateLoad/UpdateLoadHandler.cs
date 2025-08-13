@@ -1,4 +1,5 @@
-﻿using Logistics.Application.Extensions;
+using Logistics.Application.Abstractions;
+using Logistics.Application.Extensions;
 using Logistics.Application.Services;
 using Logistics.Application.Utilities;
 using Logistics.Domain.Entities;
@@ -7,24 +8,24 @@ using Logistics.Shared.Models;
 
 namespace Logistics.Application.Commands;
 
-internal sealed class UpdateLoadHandler : RequestHandler<UpdateLoadCommand, Result>
+internal sealed class UpdateLoadHandler : IAppRequestHandler<UpdateLoadCommand, Result>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
     private readonly IPushNotificationService _pushNotificationService;
+    private readonly ITenantUnitOfWork _tenantUow;
 
     public UpdateLoadHandler(
-        ITenantUnityOfWork tenantUow,
+        ITenantUnitOfWork tenantUow,
         IPushNotificationService pushNotificationService)
     {
         _tenantUow = tenantUow;
         _pushNotificationService = pushNotificationService;
     }
 
-    protected override async Task<Result> HandleValidated(
-        UpdateLoadCommand req, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        UpdateLoadCommand req, CancellationToken ct)
     {
         var load = await _tenantUow.Repository<Load>().GetByIdAsync(req.Id);
-        
+
         if (load is null)
         {
             return Result.Fail("Could not find the specified load");
@@ -37,25 +38,26 @@ internal sealed class UpdateLoadHandler : RequestHandler<UpdateLoadCommand, Resu
 
             await AssignDispatcherIfUpdated(req, load);
             await UpdateCustomerIfUpdated(req, load);
-            
+
             load.Name = PropertyUpdater.UpdateIfChanged(req.Name, load.Name);
             load.OriginAddress = PropertyUpdater.UpdateIfChanged(req.OriginAddress, load.OriginAddress);
             load.OriginLocation = PropertyUpdater.UpdateIfChanged(req.OriginLocation, load.OriginLocation);
             load.DestinationAddress = PropertyUpdater.UpdateIfChanged(req.DestinationAddress, load.DestinationAddress);
-            load.DestinationLocation = PropertyUpdater.UpdateIfChanged(req.DestinationLocation, load.DestinationLocation);
+            load.DestinationLocation =
+                PropertyUpdater.UpdateIfChanged(req.DestinationLocation, load.DestinationLocation);
             load.DeliveryCost = PropertyUpdater.UpdateIfChanged(req.DeliveryCost, load.DeliveryCost.Amount);
             load.Distance = PropertyUpdater.UpdateIfChanged(req.Distance, load.Distance);
             load.Status = PropertyUpdater.UpdateIfChanged(req.Status, load.Status);
             load.Type = PropertyUpdater.UpdateIfChanged(req.Type, load.Type);
-            
+
             var changes = await _tenantUow.SaveChangesAsync();
 
             if (changes > 0)
             {
                 await NotifyTrucksAboutUpdates(oldTruck, newTruck, load);
             }
-            
-            return Result.Succeed();
+
+            return Result.Ok();
         }
         catch (InvalidOperationException ex)
         {
@@ -99,10 +101,9 @@ internal sealed class UpdateLoadHandler : RequestHandler<UpdateLoadCommand, Resu
         {
             return null;
         }
-        
+
         loadEntity.AssignedTruck = truck;
         return truck;
-
     }
 
     private async Task AssignDispatcherIfUpdated(UpdateLoadCommand req, Load loadEntity)
@@ -127,10 +128,11 @@ internal sealed class UpdateLoadHandler : RequestHandler<UpdateLoadCommand, Resu
     private async Task NotifyTrucksAboutUpdates(Truck? oldTruck, Truck? newTruck, Load loadEntity)
     {
         if (oldTruck != null)
-        {
             // send updates to the old truck
+        {
             await _pushNotificationService.SendUpdatedLoadNotificationAsync(loadEntity, oldTruck);
         }
+
         if (newTruck != null && oldTruck != null && oldTruck.Id != newTruck.Id)
         {
             // The truck was switched

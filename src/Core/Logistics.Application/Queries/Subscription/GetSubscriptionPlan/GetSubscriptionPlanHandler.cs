@@ -1,21 +1,23 @@
-﻿using Logistics.Domain.Entities;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Entities;
 using Logistics.Domain.Persistence;
 using Logistics.Mappings;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-internal sealed class GetSubscriptionPlanHandler : RequestHandler<GetSubscriptionPlanQuery, Result<SubscriptionPlanDto>>
+internal sealed class
+    GetSubscriptionPlanHandler : IAppRequestHandler<GetSubscriptionPlanQuery, Result<SubscriptionPlanDto>>
 {
-    private readonly IMasterUnityOfWork _masterUow;
+    private readonly IMasterUnitOfWork _masterUow;
 
-    public GetSubscriptionPlanHandler(IMasterUnityOfWork masterUow)
+    public GetSubscriptionPlanHandler(IMasterUnitOfWork masterUow)
     {
         _masterUow = masterUow;
     }
 
-    protected override async Task<Result<SubscriptionPlanDto>> HandleValidated(
-        GetSubscriptionPlanQuery req, CancellationToken cancellationToken)
+    public async Task<Result<SubscriptionPlanDto>> Handle(
+        GetSubscriptionPlanQuery req, CancellationToken ct)
     {
         var entity = await _masterUow.Repository<SubscriptionPlan>().GetAsync(i => i.Id == req.Id);
 
@@ -25,6 +27,6 @@ internal sealed class GetSubscriptionPlanHandler : RequestHandler<GetSubscriptio
         }
 
         var dto = entity.ToDto();
-        return Result<SubscriptionPlanDto>.Succeed(dto);
+        return Result<SubscriptionPlanDto>.Ok(dto);
     }
 }

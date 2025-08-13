@@ -1,19 +1,20 @@
-﻿using Logistics.Domain.Persistence;
+using Logistics.Application.Abstractions;
+using Logistics.Domain.Persistence;
 using Logistics.Shared.Models;
 
 namespace Logistics.Application.Queries;
 
-public class GetTruckStatsListHandler : RequestHandler<GetTrucksStatsListQuery, PagedResult<TruckStatsDto>>
+public class GetTruckStatsListHandler : IAppRequestHandler<GetTrucksStatsListQuery, PagedResult<TruckStatsDto>>
 {
-    private readonly ITenantUnityOfWork _tenantUow;
+    private readonly ITenantUnitOfWork _tenantUow;
 
-    public GetTruckStatsListHandler(ITenantUnityOfWork tenantUow)
+    public GetTruckStatsListHandler(ITenantUnitOfWork tenantUow)
     {
         _tenantUow = tenantUow;
     }
 
-    protected override async Task<PagedResult<TruckStatsDto>> HandleValidated(
-        GetTrucksStatsListQuery req, CancellationToken cancellationToken)
+    public async Task<PagedResult<TruckStatsDto>> Handle(
+        GetTrucksStatsListQuery req, CancellationToken ct)
     {
         var query = $"""
                      SELECT * FROM get_trucks_stats(

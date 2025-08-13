@@ -1,9 +1,8 @@
-﻿using Logistics.Shared.Models;
-using MediatR;
+using Logistics.Application.Abstractions;
 
 namespace Logistics.Application.Commands;
 
-public class RemoveRoleFromEmployeeCommand : IRequest<Result>
+public class RemoveRoleFromEmployeeCommand : IAppRequest
 {
     public Guid UserId { get; set; }
     public string Role { get; set; } = null!;
