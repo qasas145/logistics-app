@@ -67,7 +67,16 @@ public static class Permissions
     {
         public const string View = $"{nameof(Permissions)}.{nameof(Stats)}.View";
     }
-
+    
+    public static class Reports
+    {
+        public const string View = $"{nameof(Permissions)}.{nameof(Reports)}.View";
+        public const string LoadReports = $"{nameof(Permissions)}.{nameof(Reports)}.LoadReports";
+        public const string DriverReports = $"{nameof(Permissions)}.{nameof(Reports)}.DriverReports";
+        public const string FinancialReports = $"{nameof(Permissions)}.{nameof(Reports)}.FinancialReports";
+        public const string Export = $"{nameof(Permissions)}.{nameof(Reports)}.Export";
+    }
+    
     public static class Tenants
     {
         public const string Create = $"{nameof(Permissions)}.{nameof(Tenants)}.Create";

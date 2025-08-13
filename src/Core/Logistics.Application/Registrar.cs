@@ -1,11 +1,9 @@
 using System.Reflection;
-
 using FluentValidation;
 
 using Logistics.Application.Behaviours;
 using Logistics.Application.Hubs;
 using Logistics.Application.Services;
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -75,6 +73,7 @@ public static class Registrar
         services.AddScoped<IPayrollService, PayrollService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ILoadService, LoadService>();
+        services.AddScoped<IReportExportService, ReportExportService>();
         return services;
     }
 }
