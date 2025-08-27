@@ -1,6 +1,6 @@
 using Logistics.Shared.Models;
 
-namespace Logistics.Application.Services.Reporting;
+namespace Logistics.Infrastructure.Reporting;
 
 public interface IReportExportService
 {

@@ -14,14 +14,14 @@ internal sealed class LoadsReportHandler(ITenantUnitOfWork tenantUow) : IAppRequ
 
         var queryable = repository.Query();
 
-        if (req.From is not null)
+        if (req.StartDate != default)
         {
-            var from = req.From.Value;
+            var from = req.StartDate;
             queryable = queryable.Where(l => l.CreatedAt >= from);
         }
-        if (req.To is not null)
+        if (req.EndDate != default)
         {
-            var to = req.To.Value;
+            var to = req.EndDate;
             queryable = queryable.Where(l => l.CreatedAt <= to);
         }
         if (req.Status is not null)
@@ -31,7 +31,7 @@ internal sealed class LoadsReportHandler(ITenantUnitOfWork tenantUow) : IAppRequ
         if (!string.IsNullOrWhiteSpace(req.Search))
         {
             var term = req.Search.ToLower();
-            queryable = queryable.Where(l => l.Name.ToLower().Contains(term) || (l.AssignedTruck != null && l.AssignedTruck.TruckNumber.ToLower().Contains(term)) || (l.Customer != null && l.Customer.Name.ToLower().Contains(term)));
+            queryable = queryable.Where(l => l.Name.ToLower().Contains(term) || (l.AssignedTruck != null && l.AssignedTruck.Number.ToLower().Contains(term)) || (l.Customer != null && l.Customer.Name.ToLower().Contains(term)));
         }
 
         var totalCount = queryable.Count();
@@ -52,7 +52,7 @@ internal sealed class LoadsReportHandler(ITenantUnitOfWork tenantUow) : IAppRequ
                 DeliveredAt = l.DeliveredAt,
                 DeliveryCost = l.DeliveryCost,
                 Distance = l.Distance,
-                TruckNumber = l.AssignedTruck != null ? l.AssignedTruck.TruckNumber : null,
+                TruckNumber = l.AssignedTruck != null ? l.AssignedTruck.Number : null,
                 CustomerName = l.Customer != null ? l.Customer.Name : null
             })
             .ToList();
