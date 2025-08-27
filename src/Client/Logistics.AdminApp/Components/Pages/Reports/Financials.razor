@@ -1,0 +1,81 @@
+@page "/reports/financials"
+@inherits PageBase
+
+<RadzenHeading Size="HeadingSize.H4" Text="Financials Report" />
+
+<RadzenCard>
+    <RadzenRow>
+        <RadzenColumn Size="3">
+            <RadzenDatePicker @bind-Value="query.From" Placeholder="From" />
+        </RadzenColumn>
+        <RadzenColumn Size="3">
+            <RadzenDatePicker @bind-Value="query.To" Placeholder="To" />
+        </RadzenColumn>
+        <RadzenColumn Size="3">
+            <RadzenTextBox @bind-Value="query.Search" Placeholder="Search customer" />
+        </RadzenColumn>
+        <RadzenColumn Size="3" class="d-flex align-items-end">
+            <RadzenButton Text="Filter" Click="LoadData" Icon="search" Style="margin-right: 0.5rem" />
+            <RadzenButton Text="Reset" Click="Reset" Icon="restart_alt" ButtonStyle="ButtonStyle.Secondary" />
+        </RadzenColumn>
+    </RadzenRow>
+
+    <RadzenDataGrid Data="items" TItem="FinancialsReportItemDto" Count="totalCount" LoadData="OnLoadGrid" AllowPaging="true" PageSize="query.PageSize">
+        <Columns>
+            <RadzenDataGridColumn TItem="FinancialsReportItemDto" Property="InvoiceNumber" Title="Invoice #" />
+            <RadzenDataGridColumn TItem="FinancialsReportItemDto" Property="CustomerName" Title="Customer" />
+            <RadzenDataGridColumn TItem="FinancialsReportItemDto" Property="Status" Title="Status" />
+            <RadzenDataGridColumn TItem="FinancialsReportItemDto" Property="Total" Title="Total" />
+            <RadzenDataGridColumn TItem="FinancialsReportItemDto" Property="Paid" Title="Paid" />
+            <RadzenDataGridColumn TItem="FinancialsReportItemDto" Property="Due" Title="Due" />
+            <RadzenDataGridColumn TItem="FinancialsReportItemDto" Property="DueDate" Title="Due Date" FormatString="{0:yyyy-MM-dd}" />
+        </Columns>
+    </RadzenDataGrid>
+
+    <RadzenRow class="mt-3">
+        <RadzenColumn Size="4"><b>Total Invoiced:</b> @totalInvoiced</RadzenColumn>
+        <RadzenColumn Size="4"><b>Total Paid:</b> @totalPaid</RadzenColumn>
+        <RadzenColumn Size="4"><b>Total Due:</b> @totalDue</RadzenColumn>
+    </RadzenRow>
+</RadzenCard>
+
+@code {
+    private FinancialsReportQuery query = new() { Page = 1, PageSize = 10 };
+    private IEnumerable<FinancialsReportItemDto> items = Array.Empty<FinancialsReportItemDto>();
+    private int totalCount;
+    private decimal totalInvoiced;
+    private decimal totalPaid;
+    private decimal totalDue;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task OnLoadGrid(LoadDataArgs args)
+    {
+        query.Page = (args.Skip / args.Top) + 1;
+        query.PageSize = args.Top ?? query.PageSize;
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var res = await ApiClient.GetFinancialsReportAsync(query);
+        if (res.Success)
+        {
+            items = res.Data!.Items;
+            totalCount = res.Data.TotalCount;
+            totalInvoiced = res.Data.TotalInvoiced;
+            totalPaid = res.Data.TotalPaid;
+            totalDue = res.Data.TotalDue;
+        }
+    }
+
+    private async Task Reset()
+    {
+        query = new FinancialsReportQuery { Page = 1, PageSize = 10 };
+        await LoadData();
+    }
+}
+

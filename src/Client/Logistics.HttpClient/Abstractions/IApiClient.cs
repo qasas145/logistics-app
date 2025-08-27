@@ -10,6 +10,7 @@ public interface IApiClient :
     IUserApi,
     IDriverApi,
     IStatsApi,
+    IReportsApi,
     ISubscriptionApi
 {
     string? AccessToken { get; set; }
