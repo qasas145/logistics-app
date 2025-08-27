@@ -13,6 +13,7 @@ using Logistics.Application;
 using Logistics.Application.Hubs;
 using Logistics.Infrastructure;
 using Logistics.Infrastructure.Builder;
+using Logistics.Infrastructure.Reporting;
 using Logistics.Shared.Models;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -93,6 +94,7 @@ internal static class Setup
             );
             options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
         });
+        services.AddScoped<Logistics.Application.Services.Reporting.IReportExportService, ReportExportService>();
         ;
 
         services.AddCors(options =>

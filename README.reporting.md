@@ -20,6 +20,11 @@ Backend
   - GET `reports/drivers`
   - GET `reports/financials`
   All protected by `Permissions.Stats.View`.
+  - Export endpoints:
+    - GET `reports/loads/export?format=csv|xlsx|pdf|docx`
+    - GET `reports/drivers/export?format=csv|xlsx|pdf|docx`
+    - GET `reports/financials/export?format=csv|xlsx|pdf|docx`
+  - Export service: `IReportExportService` with implementation `ReportExportService` (currently CSV; swap in QuestPDF, ClosedXML, OpenXML easily).
 
 Frontend (Admin)
 - Navigation: Added Reports group to `MainLayout.razor` with three items.
@@ -32,6 +37,15 @@ HTTP Client
 - Added `IReportsApi` and implemented methods in `ApiClient`:
   - `GetLoadsReportAsync`, `GetDriversReportAsync`, `GetFinancialsReportAsync`
 - Extended `IApiClient` to include `IReportsApi`.
+
+Frontend (Angular)
+- Location: `src/Client/Logistics.ReportingPortal`
+- Routing to three pages under `/reports/*` with filters and export buttons.
+- Uses Angular standalone components with HttpClient.
+- Commands:
+  - Install deps: `npm install`
+  - Run: `npm start` (defaults to port 4200)
+  - Configure API base (default assumes same-origin; adjust proxy if needed).
 
 How to Run
 1) Ensure .NET SDK is installed and available as `dotnet`. If it's missing in your environment, install .NET 8 SDK.
