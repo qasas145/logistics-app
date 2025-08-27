@@ -47,6 +47,12 @@ Frontend (Angular)
   - Run: `npm start` (defaults to port 4200)
   - Configure API base (default assumes same-origin; adjust proxy if needed).
 
+Notes on Export Formats
+- Currently the export service emits CSV for all requested formats to avoid heavy dependencies in this environment.
+- To enable true PDFs/Excels/Word:
+  - Add QuestPDF for PDF, ClosedXML for XLSX, and OpenXML/DocX for DOCX to `Logistics.Infrastructure`.
+  - Update `ReportExportService.ExportAsync` switch cases to call the real generators.
+
 How to Run
 1) Ensure .NET SDK is installed and available as `dotnet`. If it's missing in your environment, install .NET 8 SDK.
 2) From repository root:
