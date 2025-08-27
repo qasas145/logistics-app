@@ -1,5 +1,4 @@
-using Logistics.Application.Queries;
-using Logistics.Application.Services.Reporting;
+using Logistics.Infrastructure.Reporting;
 using Logistics.Shared.Identity.Policies;
 using Logistics.Shared.Models;
 
@@ -7,6 +6,10 @@ using MediatR;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
+using LoadsReportQuery = Logistics.Application.Queries.LoadsReportQuery;
+using DriversReportQuery = Logistics.Application.Queries.DriversReportQuery;
+using FinancialsReportQuery = Logistics.Application.Queries.FinancialsReportQuery;
 
 namespace Logistics.API.Controllers;
 

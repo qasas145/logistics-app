@@ -13,22 +13,22 @@ internal sealed class DriversReportHandler(ITenantUnitOfWork tenantUow) : IAppRe
         var trucks = tenantUow.Repository<Truck>().Query();
         var loads = tenantUow.Repository<Load>().Query();
 
-        if (req.From is not null)
+        if (req.StartDate != default)
         {
-            var from = req.From.Value;
+            var from = req.StartDate;
             loads = loads.Where(l => l.CreatedAt >= from);
         }
-        if (req.To is not null)
+        if (req.EndDate != default)
         {
-            var to = req.To.Value;
+            var to = req.EndDate;
             loads = loads.Where(l => l.CreatedAt <= to);
         }
 
         var driverStats = trucks
-            .SelectMany(t => t.Drivers.Select(d => new { Truck = t, Driver = d }))
+            .SelectMany(t => new[] { t.MainDriver, t.SecondaryDriver }.Where(d => d != null).Select(d => new { Truck = t, Driver = d! }))
             .Select(x => new DriversReportItemDto
             {
-                DriverId = x.Driver.UserId,
+                DriverId = x.Driver.Id,
                 DriverName = x.Driver.GetFullName(),
                 LoadsDelivered = loads.Count(l => l.AssignedTruckId == x.Truck.Id && l.Status == Domain.Primitives.Enums.LoadStatus.Delivered),
                 DistanceDriven = loads.Where(l => l.AssignedTruckId == x.Truck.Id && l.Status == Domain.Primitives.Enums.LoadStatus.Delivered).Sum(l => l.Distance),

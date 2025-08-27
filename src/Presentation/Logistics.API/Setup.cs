@@ -94,7 +94,7 @@ internal static class Setup
             );
             options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
         });
-        services.AddScoped<Logistics.Application.Services.Reporting.IReportExportService, ReportExportService>();
+        services.AddScoped<Logistics.Infrastructure.Reporting.IReportExportService, ReportExportService>();
         ;
 
         services.AddCors(options =>

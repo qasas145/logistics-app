@@ -11,14 +11,14 @@ internal sealed class FinancialsReportHandler(ITenantUnitOfWork tenantUow) : IAp
     {
         var invoices = tenantUow.Repository<LoadInvoice>().Query();
 
-        if (req.From is not null)
+        if (req.StartDate != default)
         {
-            var from = req.From.Value;
+            var from = req.StartDate;
             invoices = invoices.Where(i => i.CreatedAt >= from);
         }
-        if (req.To is not null)
+        if (req.EndDate != default)
         {
-            var to = req.To.Value;
+            var to = req.EndDate;
             invoices = invoices.Where(i => i.CreatedAt <= to);
         }
         if (req.Status is not null)

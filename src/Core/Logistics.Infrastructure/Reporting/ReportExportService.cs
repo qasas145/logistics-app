@@ -1,5 +1,5 @@
 using System.Text;
-using Logistics.Application.Services.Reporting;
+using Logistics.Infrastructure.Reporting;
 using Logistics.Shared.Models;
 
 namespace Logistics.Infrastructure.Reporting;
