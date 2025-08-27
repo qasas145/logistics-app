@@ -34,7 +34,7 @@ HTTP Client
 - Extended `IApiClient` to include `IReportsApi`.
 
 How to Run
-1) Ensure .NET SDK is installed and available as `dotnet`.
+1) Ensure .NET SDK is installed and available as `dotnet`. If it's missing in your environment, install .NET 8 SDK.
 2) From repository root:
    - Build: `dotnet build Logistics.sln`
    - Run API: `dotnet run --project src/Presentation/Logistics.API/Logistics.API.csproj`
