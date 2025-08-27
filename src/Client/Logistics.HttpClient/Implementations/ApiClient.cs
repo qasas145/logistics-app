@@ -350,6 +350,25 @@ internal class ApiClient : GenericApiClient, IApiClient
 
     #endregion
 
+    #region Reports API
+
+    public Task<Result<LoadsReportDto>> GetLoadsReportAsync(LoadsReportQuery query)
+    {
+        return MakeGetRequestAsync<Result<LoadsReportDto>>("reports/loads", query.ToDictionary());
+    }
+
+    public Task<Result<DriversReportDto>> GetDriversReportAsync(DriversReportQuery query)
+    {
+        return MakeGetRequestAsync<Result<DriversReportDto>>("reports/drivers", query.ToDictionary());
+    }
+
+    public Task<Result<FinancialsReportDto>> GetFinancialsReportAsync(FinancialsReportQuery query)
+    {
+        return MakeGetRequestAsync<Result<FinancialsReportDto>>("reports/financials", query.ToDictionary());
+    }
+
+    #endregion
+
 
     #region Subscriptions API
 
