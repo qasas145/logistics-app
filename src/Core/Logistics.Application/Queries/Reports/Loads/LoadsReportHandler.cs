@@ -35,7 +35,7 @@ internal sealed class LoadsReportHandler(ITenantUnitOfWork tenantUow) : IAppRequ
         }
 
         var totalCount = queryable.Count();
-        var totalRevenue = queryable.Sum(l => l.DeliveryCost);
+        var totalRevenue = queryable.Select(l => l.DeliveryCost.Amount).Sum();
         var totalDistance = queryable.Sum(l => l.Distance);
 
         var items = queryable
@@ -50,7 +50,7 @@ internal sealed class LoadsReportHandler(ITenantUnitOfWork tenantUow) : IAppRequ
                 Status = l.Status,
                 CreatedAt = l.CreatedAt,
                 DeliveredAt = l.DeliveredAt,
-                DeliveryCost = l.DeliveryCost,
+                DeliveryCost = l.DeliveryCost.Amount,
                 Distance = l.Distance,
                 TruckNumber = l.AssignedTruck != null ? l.AssignedTruck.Number : null,
                 CustomerName = l.Customer != null ? l.Customer.Name : null
