@@ -6,10 +6,10 @@
 <RadzenCard>
     <RadzenRow>
         <RadzenColumn Size="3">
-            <RadzenDatePicker @bind-Value="query.From" Placeholder="From" />
+            <RadzenDatePicker @bind-Value="query.StartDate" Placeholder="From" />
         </RadzenColumn>
         <RadzenColumn Size="3">
-            <RadzenDatePicker @bind-Value="query.To" Placeholder="To" />
+            <RadzenDatePicker @bind-Value="query.EndDate" Placeholder="To" />
         </RadzenColumn>
         <RadzenColumn Size="3">
             <RadzenTextBox @bind-Value="query.Search" Placeholder="Search customer" />
@@ -54,21 +54,26 @@
 
     private async Task OnLoadGrid(LoadDataArgs args)
     {
-        query.Page = (args.Skip / args.Top) + 1;
-        query.PageSize = args.Top ?? query.PageSize;
+        int pageSize = args.Top ?? query.PageSize;
+        int skip = args.Skip ?? 0;
+        if (pageSize > 0)
+        {
+            query.Page = (skip / pageSize) + 1;
+            query.PageSize = pageSize;
+        }
         await LoadData();
     }
 
     private async Task LoadData()
     {
-        var res = await ApiClient.GetFinancialsReportAsync(query);
-        if (res.Success)
+        var res = await CallApiAsync(c => c.GetFinancialsReportAsync(query));
+        if (res != null)
         {
-            items = res.Data!.Items;
-            totalCount = res.Data.TotalCount;
-            totalInvoiced = res.Data.TotalInvoiced;
-            totalPaid = res.Data.TotalPaid;
-            totalDue = res.Data.TotalDue;
+            items = res.Items;
+            totalCount = res.TotalCount;
+            totalInvoiced = res.TotalInvoiced;
+            totalPaid = res.TotalPaid;
+            totalDue = res.TotalDue;
         }
     }
 
