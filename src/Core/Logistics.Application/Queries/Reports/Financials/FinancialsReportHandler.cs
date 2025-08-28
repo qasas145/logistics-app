@@ -32,8 +32,8 @@ internal sealed class FinancialsReportHandler(ITenantUnitOfWork tenantUow) : IAp
         }
 
         var totalCount = invoices.Count();
-        var totalInvoiced = invoices.Sum(i => i.Total);
-        var totalPaid = invoices.Sum(i => i.Payments.Sum(p => p.Amount));
+        var totalInvoiced = invoices.Select(i => i.Total.Amount).Sum();
+        var totalPaid = invoices.SelectMany(i => i.Payments).Select(p => p.Amount.Amount).Sum();
         var totalDue = totalInvoiced - totalPaid;
 
         var items = invoices
@@ -45,8 +45,8 @@ internal sealed class FinancialsReportHandler(ITenantUnitOfWork tenantUow) : IAp
                 InvoiceId = i.Id,
                 InvoiceNumber = i.Number,
                 Status = i.Status,
-                Total = i.Total,
-                Paid = i.Payments.Sum(p => p.Amount),
+                Total = i.Total.Amount,
+                Paid = i.Payments.Select(p => p.Amount.Amount).Sum(),
                 DueDate = i.DueDate,
                 CustomerName = i.Customer != null ? i.Customer.Name : null
             })

@@ -46,6 +46,15 @@ Frontend (Angular)
   - Install deps: `npm install`
   - Run: `npm start` (defaults to port 4200)
   - Configure API base (default assumes same-origin; adjust proxy if needed).
+ 
+OfficeApp Integration (Angular)
+- Added in `src/Client/Logistics.OfficeApp` under `src/app/pages/reports`:
+  - Routes: `reports.routes.ts` mounted at `/reports` in `app.routes.ts`
+  - Layout: `reports.layout.ts` with tabs (Loads, Drivers, Financials)
+  - Views: `views/loads.ts`, `views/drivers.ts`, `views/financials.ts` with filters and export buttons
+- Tenant header
+  - OfficeApp already injects `X-Tenant` via `tenant.interceptor.ts` using `TenantService`
+  - On login, `AuthService.checkAuth()` sets tenant id from token claim so reports work without manual input
 
 Export Formats (Real Implementations)
 - Excel (xlsx): ClosedXML
