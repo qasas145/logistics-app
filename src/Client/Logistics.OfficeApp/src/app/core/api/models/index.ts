@@ -18,4 +18,5 @@ export * from "./notification";
 export * from "./customer";
 export * from "./payment";
 export * from "./invoice";
+export * from "./report.models";
 export * from "./trip";

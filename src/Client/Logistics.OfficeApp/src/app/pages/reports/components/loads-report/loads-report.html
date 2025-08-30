@@ -1,0 +1,98 @@
+<p-card>
+  <div class="flex flex-col gap-4">
+    <div class="flex gap-4 items-center">
+      <form class="flex gap-4 items-center" (ngSubmit)="$event.preventDefault(); loadReport();">
+        <div class="flex gap-2 items-center">
+          <label for="from">From</label>
+          <input
+            pInputText
+            id="from"
+            type="date"
+            [ngModel]="dateFrom()"
+            (ngModelChange)="dateFrom.set($event)"
+            name="from"
+          />
+        </div>
+
+        <div class="flex gap-2 items-center">
+          <label for="to">To</label>
+          <input
+            pInputText
+            id="to"
+            type="date"
+            [ngModel]="dateTo()"
+            (ngModelChange)="dateTo.set($event)"
+            name="to"
+          />
+        </div>
+
+        <div class="flex gap-2 items-center">
+          <label for="search">Search</label>
+          <input
+            pInputText
+            id="search"
+            type="text"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            name="search"
+          />
+        </div>
+
+        <p-button type="submit" label="Filter"></p-button>
+        <p-button type="button" (click)="reset()" label="Reset"></p-button>
+        <p-button type="button" (click)="exportReport('csv')" label="Export CSV"></p-button>
+        <p-button type="button" (click)="exportReport('xlsx')" label="Export Excel"></p-button>
+      </form>
+    </div>
+
+    <p-table
+      [value]="items()"
+      [loading]="isLoading()"
+      [tableStyle]="{'min-width': '50rem'}"
+      styleClass="p-datatable-sm"
+      [showLoader]="true"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Created At</th>
+          <th>Completed At</th>
+          <th>Customer</th>
+          <th>Dispatcher</th>
+          <th>Origin</th>
+          <th>Destination</th>
+          <th>Delivery Cost</th>
+          <th>Distance</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-load>
+        <tr>
+          <td>{{load.name}}</td>
+          <td>{{load.type}}</td>
+          <td>{{load.status}}</td>
+          <td>{{load.createdAt | date:'yyyy-MM-dd'}}</td>
+          <td>{{load.completedAt | date:'yyyy-MM-dd'}}</td>
+          <td>{{load.customer?.name}}</td>
+          <td>{{load.assignedDispatcher?.fullName}}</td>
+          <td>{{load.originAddress}}</td>
+          <td>{{load.destinationAddress}}</td>
+          <td>${{load.deliveryCost}}</td>
+          <td>{{load.distance}} mi</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="11" class="text-center">No loads found</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <div class="flex justify-between">
+      <p>Total Loads: <strong>{{totalCount()}}</strong></p>
+      <p>Total Revenue: <strong>${{totalRevenue()}}</strong></p>
+      <p>Total Distance: <strong>{{totalDistance()}} mi</strong></p>
+    </div>
+  </div>
+</p-card>

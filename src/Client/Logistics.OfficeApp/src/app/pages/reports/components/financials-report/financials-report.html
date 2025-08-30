@@ -1,0 +1,103 @@
+
+<p-card>
+  <div class="flex flex-col gap-4">
+    <div class="flex gap-4 items-center">
+      <form class="flex gap-4 items-center" (ngSubmit)="$event.preventDefault(); loadReport();">
+        <div class="flex gap-2 items-center">
+          <label for="from">From</label>
+          <input
+            pInputText
+            id="from"
+            type="date"
+            [ngModel]="dateFrom()"
+            (ngModelChange)="dateFrom.set($event)"
+            name="from"
+          />
+        </div>
+
+        <div class="flex gap-2 items-center">
+          <label for="to">To</label>
+          <input
+            pInputText
+            id="to"
+            type="date"
+            [ngModel]="dateTo()"
+            (ngModelChange)="dateTo.set($event)"
+            name="to"
+          />
+        </div>
+
+        <div class="flex gap-2 items-center">
+          <label for="search">Search</label>
+          <input
+            pInputText
+            id="search"
+            type="text"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            name="search"
+          />
+        </div>
+
+        <p-button type="submit" label="Filter"></p-button>
+        <p-button type="button" (click)="reset()" label="Reset"></p-button>
+        <p-button type="button" (click)="exportReport('csv')" label="Export CSV"></p-button>
+        <p-button type="button" (click)="exportReport('xlsx')" label="Export Excel"></p-button>
+      </form>
+    </div>
+
+    <div *ngIf="report()" class="flex gap-8">
+      <p-card class="w-full" subheader="Overall Performance">
+        <div class="flex flex-col gap-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <div class="text-sm text-gray-600">Revenue</div>
+              <div class="text-lg font-bold">${{report()?.totalRevenue}}</div>
+            </div>
+            <div>
+              <div class="text-sm text-gray-600">Expenses</div>
+              <div class="text-lg font-bold">${{report()?.totalExpenses}}</div>
+            </div>
+            <div>
+              <div class="text-sm text-gray-600">Net Income</div>
+              <div class="text-lg font-bold" [ngClass]="{
+                'text-green-600': report()?.netIncome! > 0,
+                'text-red-600': report()?.netIncome! < 0
+              }">${{report()?.netIncome}}</div>
+            </div>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <p-table
+      *ngIf="report()"
+      [value]="report()?.topCustomers || []"
+      [loading]="isLoading()"
+      [tableStyle]="{'min-width': '50rem'}"
+      styleClass="p-datatable-sm"
+      [showLoader]="true"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Customer</th>
+          <th>Total Loads</th>
+          <th>Revenue</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-customer>
+        <tr>
+          <td>{{customer.customerName}}</td>
+          <td>{{customer.totalLoads}}</td>
+          <td>${{customer.totalSpent}}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="3" class="text-center">No customers found</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+  </div>
+</p-card>

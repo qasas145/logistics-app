@@ -1,0 +1,68 @@
+:host ::ng-deep .p-card .p-card-body {
+  padding: 1rem;
+}
+
+:host ::ng-deep .p-table .p-datatable-tbody > tr > td {
+  padding: 0.5rem 1rem;
+}
+
+.performance-card {
+  background-color: #f8f9fa;
+}
+
+.performance-metric {
+  padding: 1rem;
+  border-right: 1px solid #dee2e6;
+}
+
+.performance-metric:last-child {
+  border-right: none;
+}
+
+.metric-label {
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
+.metric-value.positive {
+  color: #22c55e;
+}
+
+.metric-value.negative {
+  color: #ef4444;
+}
+
+.metric-value.neutral {
+  color: #495057;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .performance-metric {
+    border-right: none;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .performance-metric:last-child {
+    border-bottom: none;
+  }
+}
+
+/* Revenue chart styles */
+:host ::ng-deep .revenue-chart {
+  height: 300px;
+  margin-top: 1rem;
+}
+
+/* Customer data grid styles */
+:host ::ng-deep .customer-grid .p-datatable-thead > tr > th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}

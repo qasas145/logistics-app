@@ -1,0 +1,49 @@
+:host ::ng-deep .p-card .p-card-body {
+  padding: 1rem;
+}
+
+:host ::ng-deep .p-table .p-datatable-tbody > tr > td {
+  padding: 0.5rem 1rem;
+}
+
+.stats-card {
+  background-color: #f8f9fa;
+}
+
+.stats-card .p-card-content {
+  padding: 0;
+}
+
+.driver-stat {
+  padding: 1rem;
+  border-right: 1px solid #dee2e6;
+}
+
+.driver-stat:last-child {
+  border-right: none;
+}
+
+.stat-label {
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .driver-stat {
+    border-right: none;
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 1rem;
+  }
+
+  .driver-stat:last-child {
+    border-bottom: none;
+  }
+}
