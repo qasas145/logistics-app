@@ -24,16 +24,47 @@ internal sealed class DriversReportHandler(ITenantUnitOfWork tenantUow) : IAppRe
             loads = loads.Where(l => l.CreatedAt <= to);
         }
 
-        var driverStats = trucks
-            .SelectMany(t => new[] { new { Truck = t, Driver = t.MainDriver }, new { Truck = t, Driver = t.SecondaryDriver } })
-            .Where(x => x.Driver != null)
+        // قم بتعديل الجزء المتعلق بالـ drivers stats كالتالي
+        var mainDriverStats = trucks
+            .Where(t => t.MainDriver != null)
+            .Select(t => new
+            {
+                DriverId = t.MainDriver!.Id,
+                DriverName = t.MainDriver!.FirstName + " " + t.MainDriver!.LastName,
+                TruckId = t.Id
+            });
+
+        var secondaryDriverStats = trucks
+            .Where(t => t.SecondaryDriver != null)
+            .Select(t => new
+            {
+                DriverId = t.SecondaryDriver!.Id,
+                DriverName = t.SecondaryDriver!.FirstName + " " + t.SecondaryDriver!.LastName,
+                TruckId = t.Id
+            });
+
+        var combinedDriverStats = mainDriverStats.Union(secondaryDriverStats);
+
+        var driverStats = combinedDriverStats
             .Select(x => new DriversReportItemDto
             {
-                DriverId = x.Driver!.Id,
-                DriverName = x.Driver!.FirstName + " " + x.Driver!.LastName,
-                LoadsDelivered = loads.Count(l => l.AssignedTruckId == x.Truck.Id && l.Status == Domain.Primitives.Enums.LoadStatus.Delivered),
-                DistanceDriven = loads.Where(l => l.AssignedTruckId == x.Truck.Id && l.Status == Domain.Primitives.Enums.LoadStatus.Delivered).Select(l => l.Distance).Sum(),
-                GrossEarnings = loads.Where(l => l.AssignedTruckId == x.Truck.Id && l.Status == Domain.Primitives.Enums.LoadStatus.Delivered).Select(l => l.DeliveryCost.Amount).Sum()
+                DriverId = x.DriverId,
+                DriverName = x.DriverName,
+                LoadsDelivered = loads.Count(l =>
+                    l.AssignedTruckId == x.TruckId &&
+                    l.Status == Domain.Primitives.Enums.LoadStatus.Delivered),
+                DistanceDriven = loads
+                    .Where(l =>
+                        l.AssignedTruckId == x.TruckId &&
+                        l.Status == Domain.Primitives.Enums.LoadStatus.Delivered)
+                    .Select(l => l.Distance)
+                    .Sum(),
+                GrossEarnings = loads
+                    .Where(l =>
+                        l.AssignedTruckId == x.TruckId &&
+                        l.Status == Domain.Primitives.Enums.LoadStatus.Delivered)
+                    .Select(l => l.DeliveryCost.Amount)
+                    .Sum()
             });
 
         if (!string.IsNullOrWhiteSpace(req.Search))
