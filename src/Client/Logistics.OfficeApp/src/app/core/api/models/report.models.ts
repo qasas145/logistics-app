@@ -1,52 +1,58 @@
 import {SearchableQuery} from "./searchable.query";
 
+export interface LoadReportDto {
+  
+    id : string;
+    number : number;
+    name : string;
+    status : string;
+    createdAt : string;
+    deliveredAt : string | null;
+    deliveryCost : number;
+    distance : number;
+    truckNumber : string | null;
+    customerName : string | null;
+} 
+
 export interface LoadsReportDto {
-  id: string;
-  name: string;
-  type: string;
-  status: string;
-  customer: {
-    id: string;
-    name: string;
-  };
-  assignedDispatcher: {
-    id: string;
-    fullName: string;
-  };
-  originAddress: string;
-  destinationAddress: string;
-  deliveryCost: number;
-  distance: number;
-  createdAt: string;
-  completedAt?: string;
+  items : LoadReportDto[];
+  totalCount : number;
+  TotalRevenue : number;
+  totalDistance : number;
 }
 
 export interface DriversReportDto {
-  id: string;
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  role: string;
-  totalTrips: number;
-  completedTrips: number;
-  totalDistance: number;
-  totalEarnings: number;
+  items : DriverReportDto[];
+  totalCount : number;
+  totalGross : number;
+  totalDistance : number;
+
+}
+export interface DriverReportDto {
+  driverId : number;
+  driverName : string;
+  loadsDelivered : number;
+  distanceDriven : number;
+  grossEarnings : number;
 }
 
+export interface FinancialReportDto {
+  invoiceId : string;
+  invoiceNumber : number;
+  status : string;
+  total : number;
+  paid : number;
+  due : number;
+  dueDate : string | null;
+  customerName : string | null;
+}
 export interface FinancialsReportDto {
-  totalRevenue: number;
-  totalExpenses: number;
-  netIncome: number;
-  topCustomers: {
-    customerId: string;
-    customerName: string;
-    totalSpent: number;
-    totalLoads: number;
-  }[];
-  monthlyRevenue: {
-    month: string;
-    revenue: number;
-  }[];
+  
+  items : FinancialReportDto[];
+  totalCount : number;
+  totalPaid : number;
+  totalDue : number;
+  totalInvoiced : number;
 }
 
 export interface GetLoadsReportQuery extends SearchableQuery {
@@ -55,4 +61,5 @@ export interface GetLoadsReportQuery extends SearchableQuery {
   loadStatus?: string;
   customerId?: string;
   dispatcherId?: string;
+  format? : string
 }

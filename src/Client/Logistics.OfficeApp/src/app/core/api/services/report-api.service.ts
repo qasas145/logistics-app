@@ -13,42 +13,26 @@ import {
 } from "../models";
 
 export interface GetLoadsReportExportQuery extends GetLoadsReportQuery {
-  format: "csv" | "xlsx";
+  format: "csv" | "xlsx" | "pdf";
 }
 
 export class ReportApiService extends ApiBase {
-  getLoadsReport(query?: GetLoadsReportQuery): Observable<PagedResult<LoadsReportDto>> {
-    return this.get(`/reports/loads?${this.stringfyQuery(query)}`);
+  exportLoadsReport(query?: GetLoadsReportQuery): Observable<HttpResponse<Blob>> {
+    return this.get(`/reports/loads?${this.stringfyQuery(query)}`, 
+      {observe: "response", responseType: "blob"});
   }
 
-  exportLoadsReport(format: string): Observable<HttpResponse<Blob>> {
-    const url = `/reports/loads/export?format=${format}`;
-    const xhr = new XMLHttpRequest();
-    xhr.open("GET", this.apiUrl + url, true);
-    xhr.responseType = "blob";
-    
-    return new Observable<HttpResponse<Blob>>(observer => {
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          const response = new HttpResponse({
-            body: xhr.response,
-            headers: new HttpHeaders(xhr.getAllResponseHeaders()),
-            status: xhr.status,
-            statusText: xhr.statusText,
-            url: xhr.responseURL
-          });
-          observer.next(response);
-          observer.complete();
-        } else {
-          observer.error(new Error(`Export failed with status ${xhr.status}`));
-        }
-      };
-      xhr.onerror = () => observer.error(new Error("Export request failed"));
-      xhr.send();
+  exportDriversReport(format: string): Observable<HttpResponse<Blob>> {
+    return this.get(`/reports/drivers/export?format=${format}`, {
+      observe: "response",
+      responseType: "blob"
     });
   }
 
-  getDriversReport(query?: SearchableQuery): Observable<any> {
+  getLoadsReport(query?: SearchableQuery): Observable<Result<LoadsReportDto>> {
+    return this.get(`/reports/loads?${this.stringfySearchableQuery(query)}`);
+  }
+  getDriversReport(query?: SearchableQuery): Observable<Result<DriversReportDto>> {
     return this.get(`/reports/drivers?${this.stringfySearchableQuery(query)}`);
   }
 

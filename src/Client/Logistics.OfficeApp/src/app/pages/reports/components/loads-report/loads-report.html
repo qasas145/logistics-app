@@ -40,6 +40,7 @@
 
         <p-button type="submit" label="Filter"></p-button>
         <p-button type="button" (click)="reset()" label="Reset"></p-button>
+        <p-button type="button" (click)="exportReport('pdf')" label="Export Pdf"></p-button>
         <p-button type="button" (click)="exportReport('csv')" label="Export CSV"></p-button>
         <p-button type="button" (click)="exportReport('xlsx')" label="Export Excel"></p-button>
       </form>
@@ -55,14 +56,11 @@
       <ng-template pTemplate="header">
         <tr>
           <th>Name</th>
-          <th>Type</th>
           <th>Status</th>
+          <th>Truck Number</th>
           <th>Created At</th>
-          <th>Completed At</th>
+          <th>Delivered At</th>
           <th>Customer</th>
-          <th>Dispatcher</th>
-          <th>Origin</th>
-          <th>Destination</th>
           <th>Delivery Cost</th>
           <th>Distance</th>
         </tr>
@@ -70,16 +68,13 @@
       <ng-template pTemplate="body" let-load>
         <tr>
           <td>{{load.name}}</td>
-          <td>{{load.type}}</td>
           <td>{{load.status}}</td>
+          <td>{{load.truckNumber}}</td>
           <td>{{load.createdAt | date:'yyyy-MM-dd'}}</td>
-          <td>{{load.completedAt | date:'yyyy-MM-dd'}}</td>
-          <td>{{load.customer?.name}}</td>
-          <td>{{load.assignedDispatcher?.fullName}}</td>
-          <td>{{load.originAddress}}</td>
-          <td>{{load.destinationAddress}}</td>
+          <td>{{load.deliveredAt | date:'yyyy-MM-dd'}}</td>
+          <td>{{load.customerName}}</td>
           <td>${{load.deliveryCost}}</td>
-          <td>{{load.distance}} mi</td>
+          <td>{{load.distance}}</td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">

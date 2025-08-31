@@ -7,8 +7,9 @@ import {CardModule} from "primeng/card";
 import {InputTextModule} from "primeng/inputtext";
 import {TableModule} from "primeng/table";
 import {ApiService} from "@/core/api";
-import {LoadsReportDto} from "@/core/api/models";
+import {LoadReportDto, LoadsReportDto} from "@/core/api/models";
 import {ToastService} from "@/core/services";
+import { ReportApiService } from "@/core/api/services";
 
 @Component({
   selector: "app-loads-report",
@@ -20,9 +21,10 @@ import {ToastService} from "@/core/services";
 export class LoadsReportComponent implements OnInit {
   private readonly apiService = inject(ApiService);
   private readonly destroyRef = inject(DestroyRef);
+  // private readonly reportApi = inject(ReportApiService);
   private readonly toastService = inject(ToastService);
   
-  protected readonly items = signal<LoadsReportDto[]>([]);
+  protected readonly items = signal<LoadReportDto[]>([]);
   protected readonly totalCount = signal<number>(0);
   protected readonly totalRevenue = signal<number>(0);
   protected readonly totalDistance = signal<number>(0);
@@ -52,9 +54,8 @@ export class LoadsReportComponent implements OnInit {
       .subscribe({
         next: (result) => {
           if (result.success && result.data) {
-            this.items.set(result.data);
-            this.totalCount.set(result.totalItems);
-            this.calculateTotals(result.data);
+            this.items.set(result.data.items);
+            this.totalCount.set(result.data.totalCount);
           }
           this.isLoading.set(false);
         },
@@ -73,43 +74,17 @@ export class LoadsReportComponent implements OnInit {
   }
 
   protected exportReport(format: string): void {
-    // Create a form and submit it to trigger the download
-    const form = document.createElement("form");
-    form.method = "GET";
-    form.action = "/api/reports/loads/export";
-    form.target = "_blank";
 
-    // Add form fields for query parameters
-    const appendInput = (name: string, value: string) => {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = name;
-      input.value = value;
-      form.appendChild(input);
-    };
-
-    appendInput("format", format);
-    if (this.dateFrom()) {
-      appendInput("dateFrom", this.dateFrom()!.toISOString());
-    }
-    if (this.dateTo()) {
-      appendInput("dateTo", this.dateTo()!.toISOString());
-    }
-    if (this.searchQuery()) {
-      appendInput("search", this.searchQuery());
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
-  }
-
-  private calculateTotals(data: LoadsReportDto[]): void {
-    const revenue = data.reduce((sum, item) => sum + (item.deliveryCost || 0), 0);
-    const distance = data.reduce((sum, item) => sum + (item.distance || 0), 0);
-
-    this.totalRevenue.set(revenue);
-    this.totalDistance.set(distance);
-  }
-
-}
+  this.isLoading.set(true);
+  
+  this.apiService.reportApi.exportLoadsReport({format : "pdf"})
+  .subscribe((response) => {
+        const blob = response.body!;
+        const a = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = "loads-report.pdf";
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+}}

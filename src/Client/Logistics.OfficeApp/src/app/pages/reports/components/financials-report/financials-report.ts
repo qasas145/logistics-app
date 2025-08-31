@@ -7,7 +7,7 @@ import {CardModule} from "primeng/card";
 import {InputTextModule} from "primeng/inputtext";
 import {TableModule} from "primeng/table";
 import {ApiService} from "@/core/api";
-import {FinancialsReportDto} from "@/core/api/models";
+import {FinancialReportDto, FinancialsReportDto} from "@/core/api/models";
 import {ToastService} from "@/core/services";
 
 @Component({
@@ -22,7 +22,13 @@ export class FinancialsReportComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
   
-  protected readonly report = signal<FinancialsReportDto | null>(null);
+  protected readonly items = signal<FinancialReportDto[]>([]);
+  
+  protected readonly totalCount = signal<number>(0);
+  protected readonly totalDue = signal<number>(0);
+  protected readonly totalInvoiced = signal<number>(0);
+  protected readonly totalPaid = signal<number>(0);
+
   protected readonly isLoading = signal<boolean>(false);
   
   protected dateFrom = signal<Date | null>(null);
@@ -49,7 +55,11 @@ export class FinancialsReportComponent implements OnInit {
       .subscribe({
         next: (result) => {
           if (result.success && result.data) {
-            this.report.set(result.data);
+            this.items.set(result.data.items);
+            this.totalCount.set(result.data.totalCount);
+            this.totalDue.set(result.data.totalDue);
+            this.totalInvoiced.set(result.data.totalInvoiced);
+            this.totalPaid.set(result.data.totalPaid);
           }
           this.isLoading.set(false);
         },
